@@ -179,6 +179,10 @@
             width: 100%;
             padding: 0;
             border-bottom: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px; /* Add minimum height for placeholder */
         }
         
         .work-title {
@@ -213,6 +217,18 @@
             min-height: auto;
             position: relative;
             text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .work-content img {
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .work-content img.loaded {
+            opacity: 1;
         }
         
         .inverted .work-title::before {
@@ -352,19 +368,35 @@
             
             // Array of all images to display
             const images = [
-                { src: "../images/selectedWorks/Gayretullah.png", alt: "Gayretullah" },
-                { src: "../images/selectedWorks/Ölüyorumanla.png", alt: "Ölüyorumanla" },
-                { src: "../images/selectedWorks/Kozmiktren.jpg", alt: "Kozmiktren" },
-                { src: "../images/selectedWorks/MD_EuropeTour_Rug_2024.png", alt: "MD Europe Tour Rug 2024" },
-                { src: "../images/selectedWorks/1.png", alt: "Work 1" },
-                { src: "../images/selectedWorks/2.png", alt: "Work 2" },
-                { src: "../images/selectedWorks/3.png", alt: "Work 3" },
-                { src: "../images/selectedWorks/4.png", alt: "Work 4" },
-                { src: "../images/selectedWorks/5.png", alt: "Work 5" },
-                { src: "../images/selectedWorks/6.png", alt: "Work 6" },
-                { src: "../images/selectedWorks/7.png", alt: "Work 7" },
-                { src: "../images/selectedWorks/8.png", alt: "Work 8" }
+                { src: "../images/selectedWorks/MD_EuropeTourRug24.png", alt: "MD Europe Tour Rug 24", maxWidth: "900px" },
+                { src: "../images/selectedWorks/Gayretullah.png", alt: "Gayretullah", maxWidth: "1500px" },
+                { src: "../images/selectedWorks/Ölüyorumanla.png", alt: "Ölüyorumanla", maxWidth: "1400px" },
+                { src: "../images/selectedWorks/Kozmiktren.jpg", alt: "Kozmiktren", maxWidth: "1000px" },
+                { src: "../images/selectedWorks/1_MertDemir_Logotype.png", alt: "MertDemir", maxWidth: "800px" },
+                { src: "../images/selectedWorks/anne.png", alt: "Anakuzusu", maxWidth: "800px" },
+                { src: "../images/selectedWorks/e.png", alt: "Chrometype_e", maxWidth: "800px" },
+                { src: "../images/selectedWorks/Recession-Pandemic.png", alt: "Recession-Pandemic", maxWidth: "1000px" },
+                { src: "../images/selectedWorks/yüz.png", alt: "Yüz", maxWidth: "800px" },
+                { src: "../images/selectedWorks/2_Logotype.png", alt: "Pandemic", maxWidth: "1200px" },
+                { src: "../images/selectedWorks/_MD_EuropeTour2024_TourPoster-Post.png", alt: "MD Europe Tour 2024 Tour Poster", maxWidth: "700px" },
+                { src: "../images/selectedWorks/KasetGif.gif", alt: "Kaset Gif", maxWidth: "800px" },
+                { src: "../images/selectedWorks/3_Logotype.png", alt: "UnitedCapricorns", maxWidth: "1200px" }
             ];
+            
+            // Create Intersection Observer
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.classList.add('loaded');
+                        observer.unobserve(img);
+                    }
+                });
+            }, {
+                rootMargin: '50px 0px',
+                threshold: 0.1
+            });
             
             // Add each image to the projects area
             images.forEach(image => {
@@ -372,10 +404,14 @@
                 workItem.className = 'work-item';
                 workItem.innerHTML = `
                     <div class="work-content">
-                        <img src="${image.src}" alt="${image.alt}" style="width:100%; max-width:1000px; display:block; margin:0 auto;">
+                        <img data-src="${image.src}" alt="${image.alt}" style="width:100%; max-width:${image.maxWidth}; display:block; margin:0 auto;">
                     </div>
                 `;
                 projectsGallery.appendChild(workItem);
+                
+                // Observe the image
+                const img = workItem.querySelector('img');
+                observer.observe(img);
             });
             
             // Hide loading indicator since we're not loading any more items
