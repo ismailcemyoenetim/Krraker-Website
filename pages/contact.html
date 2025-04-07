@@ -85,18 +85,22 @@
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             animation: fadeIn 0.2s ease-out 0.3s forwards;
             opacity: 0;
+            max-width: 600px;
+            margin-left: 0;
         }
         
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            margin-bottom: 15px;
+            width: 100%;
         }
         
         .form-group label {
             color: var(--grid-glow);
             font-size: 14px;
             letter-spacing: 0px;
+            margin-bottom: 8px;
         }
         
         .form-group input,
@@ -109,6 +113,7 @@
             resize: vertical;
             border-radius: 5px;
             font-size: 14px;
+            width: 100%;
         }
         
         .form-group input:focus,
@@ -157,12 +162,12 @@
         }
         
         .contact-info {
-            margin-top: 40px;
+            margin-top: 30px;
             padding-top: 30px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
             animation: fadeIn 0.2s ease-out 0.4s forwards;
             opacity: 0;
         }
@@ -170,13 +175,12 @@
         .contact-info-item {
             display: flex;
             flex-direction: column;
-            gap: 5px;
         }
         
         .contact-info-item h3 {
             color: var(--grid-glow);
             font-size: 16px;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             letter-spacing: 0px;
         }
         
@@ -187,6 +191,7 @@
             transition: color 0.3s ease;
             font-size: 14px;
             letter-spacing: 0px;
+            line-height: 1.4;
         }
         
         .contact-info-item a:hover {
@@ -197,6 +202,29 @@
             padding: 50px 20px;
             display: flex;
             justify-content: center;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            font-size: 0.8em;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .footer p {
+            margin-bottom: 10px;
+        }
+        
+        .footer a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer a:hover {
+            color: white;
         }
     </style>
 </head>
@@ -331,14 +359,12 @@
                     <div class="contact-info">
                         <div class="contact-info-item">
                             <h3>ADDRESS</h3>
-                            <p>123 Grid Street</p>
-                            <p>Digital District, DD 12345</p>
+                            <p><i class="fas fa-map-marker-alt"></i> Esentepe Mah. Talatpaşa Cad. No:5/1, Levent - Şişli / İstanbul</p>
                         </div>
                         
                         <div class="contact-info-item">
                             <h3>EMAIL</h3>
-                            <a href="mailto:info@gridexample.com">info@gridexample.com</a>
-                            <a href="mailto:support@gridexample.com">support@gridexample.com</a>
+                            <a href="mailto:cem@krraker.com"><i class="fas fa-envelope"></i> cem@krraker.com</a>
                         </div>
                         
                         <div class="contact-info-item">
@@ -352,6 +378,11 @@
                             <p>Monday - Friday: 9am - 6pm</p>
                             <p>Weekend: Closed</p>
                         </div>
+                    </div>
+
+                    <div class="footer">
+                        <p>© 2025 • Krraker</p>
+                        <a href="termsandconditions.html">Terms and Conditions</a>
                     </div>
                 </div>
             </div>
