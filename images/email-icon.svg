@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 210.24 100.32">
+  <!-- Generator: Adobe Illustrator 29.5.0, SVG Export Plug-In . SVG Version: 2.1.0 Build 52)  -->
+  <defs>
+    <style>
+      .st0 {
+        fill: url(#linear-gradient2);
+      }
+
+      .st1 {
+        fill: url(#linear-gradient1);
+      }
+
+      .st2 {
+        fill: url(#linear-gradient);
+      }
+
+      .st3 {
+        fill: #fff;
+      }
+
+      .st4 {
+        fill: none;
+        stroke: #000;
+        stroke-miterlimit: 10;
+        stroke-width: 3px;
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="8.75" y1="28.64" x2="105.49" y2="28.64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset=".83" stop-color="#000"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient1" x1="20.61" y1="50.5" y2="50.5" xlink:href="#linear-gradient"/>
+    <linearGradient id="linear-gradient2" x1="45.98" y1="72.36" y2="72.36" xlink:href="#linear-gradient"/>
+  </defs>
+  <rect class="st3" x="105.49" y="16.74" width="92.69" height="66.85"/>
+  <rect class="st2" x="8.75" y="25.8" width="96.74" height="5.69"/>
+  <rect class="st1" x="20.61" y="47.66" width="84.88" height="5.69"/>
+  <rect class="st0" x="45.98" y="69.52" width="59.51" height="5.69"/>
+  <polyline class="st4" points="109.96 24.64 151.83 61.86 193.2 24.64"/>
+  <line class="st4" x1="109.86" y1="75.87" x2="138.27" y2="49.81"/>
+  <line class="st4" x1="193.93" y1="75.84" x2="165.52" y2="49.79"/>
+</svg>

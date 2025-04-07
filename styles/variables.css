@@ -1,0 +1,14 @@
+:root {
+    /* Siyah tema renkleri */
+    --primary-bg: #000000;      /* Saf siyah arka plan */
+    --secondary-bg: #1a1a1a;    /* Koyu gri, menüler için */
+    --text-color: #ffffff;      /* Beyaz yazı */
+    --hover-bg: rgba(255, 255, 255, 0.1);  /* Hover efekti için yarı saydam beyaz */
+    
+    /* Geçiş süreleri */
+    --transition-speed: 0.3s;
+    
+    /* Font ailesi */
+    --main-font: "Space Mono", monospace;
+}
+

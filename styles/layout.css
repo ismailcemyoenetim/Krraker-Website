@@ -1,0 +1,34 @@
+/* Navbar ve genel layout stilleri */
+.navbar {
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+    transform: scale(0.8);
+    transform-origin: top center;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* Diğer layout stilleri... */
+
+/* Nav linklerinin font boyutunu küçült */
+.nav-links a {
+    font-size: 0.8em;
+    padding: 8px 12px;
+}
+
+/* Dropdown menü boyutlarını küçült */
+.dropdown {
+    transform: scale(0.8);
+    transform-origin: top center;
+}
+
+.dropdown ul li a {
+    font-size: 0.8em;
+    padding: 8px 12px;
+} 

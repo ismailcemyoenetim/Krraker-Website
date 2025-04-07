@@ -1,0 +1,98 @@
+/* Interactive Components Library */
+
+/* Base interactive element styles */
+.interactive-element {
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    color: var(--text-color);
+}
+
+/* Hover effects */
+.interactive-element:hover {
+    transform: scale(1.05);
+}
+
+.interactive-element:active {
+    transform: scale(0.95);
+    opacity: 0.8;
+}
+
+/* Size variants */
+.interactive-element.small {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+}
+
+.interactive-element.medium {
+    padding: 8px 16px;
+    font-size: 1rem;
+}
+
+.interactive-element.large {
+    padding: 12px 24px;
+    font-size: 1.2rem;
+}
+
+/* Shape variants */
+.interactive-element.rounded {
+    border-radius: 4px;
+}
+
+.interactive-element.circular {
+    border-radius: 50%;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Special effects */
+.interactive-element.glow:hover {
+    box-shadow: 0 0 15px var(--text-color);
+}
+
+.interactive-element.rotate {
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.interactive-element.rotate:hover {
+    transform: rotate(360deg);
+}
+
+/* Button variants */
+.interactive-element.filled {
+    background-color: var(--primary-bg);
+    border: none;
+}
+
+.interactive-element.outlined {
+    background-color: transparent;
+    border: 1px solid var(--text-color);
+}
+
+/* Specific use cases */
+.interactive-element.menu-item {
+    text-decoration: none;
+    padding: 10px 15px;
+    width: 100%;
+    text-align: left;
+}
+
+/* Grid/List items */
+.interactive-element.grid-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    margin: 0.5rem;
+}
+
+/* Disabled state */
+.interactive-element:disabled,
+.interactive-element.disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    pointer-events: none;
+} 
