@@ -241,6 +241,17 @@
     </style>
 </head>
 <body>
+    <script>
+        // Puzzle Access Control
+        if (localStorage.getItem('puzzleSolved') !== 'true') {
+            // If puzzle not solved, redirect to puzzle page
+            window.location.href = 'puzzle.html';
+        } else {
+            // Optional: Clear the flag after successful access if you want the puzzle shown every time
+            // localStorage.removeItem('puzzleSolved'); 
+        }
+    </script>
+    
     <button class="invert-button">INVERT</button>
     <div id="localTimeIndicator">
         <span id="locationName">Loading...</span>
