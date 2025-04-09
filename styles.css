@@ -756,3 +756,31 @@ html, body {
 #playPauseBtn:hover {
     background: rgba(255, 255, 255, 0.1);
 }
+
+/* Lab Button Styling */
+.lab-button {
+    position: fixed;
+    left: 20px; /* Adjust as needed */
+    top: 50%;
+    transform: translateY(-50%) rotate(-90deg); /* Rotate text vertically */
+    transform-origin: left top; /* Rotate from the top-left corner */
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 7px;
+    padding: 10px 20px;
+    color: rgba(255, 255, 255, 0.35);
+    text-decoration: none;
+    font-family: "Space Mono", monospace;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.lab-button:hover {
+    color: var(--text-color);
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+}

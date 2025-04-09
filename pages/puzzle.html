@@ -283,6 +283,14 @@
             font-size: 1.1rem;
             line-height: 1.6;
         }
+
+        .timeout-message .countdown {
+            font-size: 1.5rem; /* Make countdown larger */
+            font-weight: bold;
+            color: white; /* White countdown */
+            margin-top: 0.5rem;
+            display: block; /* Ensure it's on a new line */
+        }
     </style>
 </head>
 <body>
@@ -337,6 +345,7 @@
         let timeLeft = 60;
         let attemptsLeft = 2;
         let puzzleData;
+        let timeoutIntervalId = null; // Variable to hold the interval ID
 
         // Initialize chessboard
         function initBoard() {
@@ -556,24 +565,35 @@
             const now = Date.now();
 
             if (timeoutExpiry && now < parseInt(timeoutExpiry)) {
-                const remainingMs = parseInt(timeoutExpiry) - now;
-                const remainingMinutes = Math.ceil(remainingMs / (60 * 1000));
                 const puzzleContainer = document.querySelector('.puzzle-container');
 
                 if(puzzleContainer) {
-                    // Display timeout message and block puzzle loading
-                    puzzleContainer.innerHTML = `<div class="timeout-message">You are currently timed out.<br>Please try again in approximately ${remainingMinutes} minute(s).</div>`;
+                    // Display initial timeout message with placeholder for countdown
+                    puzzleContainer.innerHTML = 
+                        `<div class="timeout-message">You are currently timed out.` +
+                        `<span class="countdown" id="countdownTimer">--:--</span>` +
+                        `Please wait until the timer expires.</div>`;
                     puzzleContainer.style.opacity = 1; // Ensure container is visible
                     puzzleContainer.style.animation = 'none'; // Disable entry animation
+                    
                      // Optionally hide back button and mouse indicator during timeout
-                    const backButton = document.querySelector('.nav-back');
-                    const mouseIndicator = document.getElementById('mouseIndicator');
-                    if(backButton) backButton.style.display = 'none';
-                    if(mouseIndicator) mouseIndicator.style.display = 'none';
+                     const backButton = document.querySelector('.nav-back');
+                     const mouseIndicator = document.getElementById('mouseIndicator');
+                     if(backButton) backButton.style.display = 'none';
+                     if(mouseIndicator) mouseIndicator.style.display = 'none';
+
+                     // Start the countdown timer
+                     timeoutIntervalId = setInterval(updateCountdown, 1000);
+                     updateCountdown(); // Call immediately to show initial time
                 }
                 return; // Stop further initialization
             }
             // --- End Timeout Check ---
+
+            // If timeoutIntervalId is running, clear it (e.g., if page was reloaded manually after timeout ended but before interval cleared)
+            if(timeoutIntervalId) {
+                clearInterval(timeoutIntervalId);
+            }
 
             initBoard();
             loadPuzzle();
@@ -606,6 +626,33 @@
                 mouseIndicator.textContent = `X: ${e.clientX}, Y: ${e.clientY}`;
             });
         });
+
+        // Function to update the countdown timer display
+        function updateCountdown() {
+            const timeoutExpiry = localStorage.getItem('puzzleTimeoutUntil');
+            if (!timeoutExpiry) {
+                clearInterval(timeoutIntervalId); // Stop if timeout key is gone
+                window.location.reload(); // Reload to load puzzle
+                return;
+            }
+
+            const now = Date.now();
+            const remainingMs = parseInt(timeoutExpiry) - now;
+
+            if (remainingMs <= 0) {
+                clearInterval(timeoutIntervalId);
+                localStorage.removeItem('puzzleTimeoutUntil');
+                window.location.reload(); // Timeout finished, reload the page
+            } else {
+                const totalSeconds = Math.floor(remainingMs / 1000);
+                const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+                const seconds = String(totalSeconds % 60).padStart(2, '0');
+                const countdownTimerElement = document.getElementById('countdownTimer');
+                if (countdownTimerElement) {
+                    countdownTimerElement.textContent = `${minutes}:${seconds}`;
+                }
+            }
+        }
     </script>
 </body>
 </html> 
