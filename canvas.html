@@ -204,6 +204,56 @@
 
     <canvas id="drawingCanvas"></canvas>
 
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js"></script>
+
+    <!-- Add SDKs for Firebase products that you want to use
+         https://firebase.google.com/docs/web/setup#available-libraries -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore.js"></script>
+
+    <script>
+      // Your web app's Firebase configuration
+      // --- PASTE YOUR CONFIG OBJECT FROM FIREBASE CONSOLE HERE ---
+      const firebaseConfig = {
+        apiKey: "AIzaSyC5KQx0U5dl7e6hMcjhFZqPQiTPh_Qvs9s", 
+        authDomain: "krraker-db.firebaseapp.com",
+        projectId: "krraker-db",
+        storageBucket: "krraker-db.firebasestorage.app",
+        messagingSenderId: "658555321674",
+        appId: "1:658555321674:web:6634ab758b652e350695b3" 
+      };
+
+      // Initialize Firebase
+      const app = firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+      const db = firebase.firestore(); // Firestore instance
+
+      console.log('Firebase Client SDK Initialized');
+
+      // --- Add Anonymous Authentication ---
+      let currentUserUid = null; // Kullanıcının UID'sini saklamak için
+
+      auth.onAuthStateChanged(user => {
+        if (user) {
+          // User is signed in anonymously.
+          currentUserUid = user.uid;
+          console.log('User signed in anonymously with UID:', currentUserUid);
+          // TODO: Kullanıcı giriş yaptıktan sonra Firestore dinleyicilerini başlat
+        } else {
+          // User is signed out.
+          currentUserUid = null;
+          console.log('User is signed out. Signing in anonymously...');
+          // Automatically sign in the user anonymously if not signed in
+          auth.signInAnonymously().catch(error => {
+            console.error("Error signing in anonymously:", error);
+          });
+        }
+      });
+      // --- End Anonymous Authentication ---
+
+    </script>
+
     <script>
         const canvas = document.getElementById('drawingCanvas');
         const ctx = canvas.getContext('2d');
@@ -234,6 +284,13 @@
         let isDrawing = false;
         let isPlacingImage = false; // State for image placement
         let pendingImage = null; // Temporarily hold the image object to be placed
+        let selectedItem = null; // To hold the currently selected drawing item
+        let isDragging = false; // State for dragging selected item
+        let dragOffsetX = 0; // Offset from item origin where drag started
+        let dragOffsetY = 0;
+        let isRotating = false; // State for rotating selected item
+        const handleSize = 8; // Screen pixels for handle size
+        const rotationHandleOffset = 20; // Screen pixels outside corner for rotation handle
         let lastPanX = 0;
         let lastPanY = 0;
 
@@ -288,6 +345,63 @@
             return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
         }
 
+        // --- Helper: Transform screen point to item's local coordinates ---
+        function screenToItemLocal(screenPoint, item) {
+            if (!item) return null;
+            // 1. Screen to World
+            let worldX = (screenPoint.x - offsetX) / scale;
+            let worldY = (screenPoint.y - offsetY) / scale;
+            // 2. World to Item's Translated Origin (inverse translate)
+            worldX -= item.x;
+            worldY -= item.y;
+            // 3. Rotate opposite to item's angle (inverse rotate)
+            const cos = Math.cos(-item.angle || 0);
+            const sin = Math.sin(-item.angle || 0);
+            const localX = worldX * cos - worldY * sin;
+            const localY = worldX * sin + worldY * cos;
+            return { x: localX, y: localY };
+        }
+
+        // --- Helper: Check if point hits a rotation handle ---
+        function getHitRotationHandle(screenPoint, item) {
+            if (!item || item.type !== 'image') return null;
+            const localPoint = screenToItemLocal(screenPoint, item);
+            if (!localPoint) return null;
+
+            const halfWidth = (item.width / 2) || (item.naturalWidth / 2);
+            const halfHeight = (item.height / 2) || (item.naturalHeight / 2);
+            const handleDist = handleSize / 2 / scale; // Handle size in world coords
+            const offsetDist = rotationHandleOffset / scale; // Offset in world coords
+
+            const handlePositions = [
+                { x: halfWidth + offsetDist, y: -halfHeight - offsetDist, corner: 'topRight' },
+                { x: -halfWidth - offsetDist, y: -halfHeight - offsetDist, corner: 'topLeft' },
+                { x: halfWidth + offsetDist, y: halfHeight + offsetDist, corner: 'bottomRight' },
+                { x: -halfWidth - offsetDist, y: halfHeight + offsetDist, corner: 'bottomLeft' }
+            ];
+
+            for (const handle of handlePositions) {
+                if (Math.abs(localPoint.x - handle.x) <= handleDist && Math.abs(localPoint.y - handle.y) <= handleDist) {
+                    return handle.corner;
+                }
+            }
+            return null;
+        }
+
+        // --- Helper: Check if point is inside image bounds ---
+        function isPointInImage(point, imageItem) {
+            if (!imageItem || imageItem.type !== 'image') return false;
+            // Simple bounding box check (assumes image is drawn centered)
+            const halfWidth = (imageItem.width / 2) || (imageItem.naturalWidth / 2);
+            const halfHeight = (imageItem.height / 2) || (imageItem.naturalHeight / 2);
+            return (
+                point.x >= imageItem.x - halfWidth &&
+                point.x <= imageItem.x + halfWidth &&
+                point.y >= imageItem.y - halfHeight &&
+                point.y <= imageItem.y + halfHeight
+            );
+        }
+
         // --- Drawing Function ---
         function redrawCanvas() {
             // Calculate visible world coordinates
@@ -326,10 +440,10 @@
             ctx.lineJoin = 'round';
 
             drawingData.forEach(item => {
-                if (!item) return; // Skip null/undefined items
+                if (!item) return;
 
                 if (item.tool === 'brush' && item.points && item.points.length > 1) {
-                    // Draw stroke
+                    // Draw stroke (No rotation applied)
                     ctx.strokeStyle = item.color;
                     ctx.lineWidth = item.lineWidth;
                     ctx.beginPath();
@@ -339,26 +453,49 @@
                     }
                     ctx.stroke();
                 } else if (item.type === 'image' && item.src) {
-                    // Draw image
-                    // Inefficient: creates new Image object every redraw for localStorage compatibility
-                    // A cache would improve performance significantly
-                    const img = new Image();
+                    // Draw image - WITH ROTATION
+                    const img = new Image(); // Inefficient, needs caching
                     img.onload = () => {
-                        // Only draw if image is loaded
-                        // Check if item dimensions exist, otherwise use natural dimensions
                         const width = item.width || img.naturalWidth;
                         const height = item.height || img.naturalHeight;
-                        // Draw image centered at its x, y coordinate
-                        ctx.drawImage(img, item.x - width / 2, item.y - height / 2, width, height);
-                        // Note: This redraws async. A more complex redraw loop might be needed
-                        //       for instant image appearance without full canvas redraw on image load.
+                        
+                        ctx.save(); // Save context state before rotating for this item
+                        ctx.translate(item.x, item.y);
+                        ctx.rotate(item.angle || 0); // Apply rotation
+                        
+                        // Draw image centered at (0, 0) in the rotated context
+                        ctx.drawImage(img, -width / 2, -height / 2, width, height);
+                        
+                        // Draw selection box and handles IF this item is selected
+                        if (selectedItem === item) {
+                            drawSelectionControls(ctx, width, height);
+                        }
+                        
+                        ctx.restore(); // Restore context state
                     };
                     img.onerror = () => {
                         console.error("Error loading image src for drawing:", item.src.substring(0, 50) + "...");
                     };
-                    img.src = item.src; // Start loading
+                    img.src = item.src;
                 }
             });
+
+            // --- Draw Selection Indicator --- 
+            if (selectedItem && selectedItem.type === 'image') {
+                // Draw a bounding box around the selected image
+                const halfWidth = (selectedItem.width / 2) || (selectedItem.naturalWidth / 2);
+                const halfHeight = (selectedItem.height / 2) || (selectedItem.naturalHeight / 2);
+                ctx.strokeStyle = 'rgba(0, 150, 255, 0.8)'; // Blue selection color
+                ctx.lineWidth = 2 / scale; // Make line width consistent on screen
+                ctx.setLineDash([6 / scale, 3 / scale]); // Dashed line scaled
+                ctx.strokeRect(
+                    selectedItem.x - halfWidth, 
+                    selectedItem.y - halfHeight, 
+                    halfWidth * 2, 
+                    halfHeight * 2
+                );
+                ctx.setLineDash([]); // Reset line dash
+            }
 
             // --- Draw the stroke currently being made ---
             if (currentStroke && currentStroke.tool === 'brush' && currentStroke.points && currentStroke.points.length > 1) {
@@ -374,6 +511,38 @@
             ctx.restore();
             zoomIndicator.textContent = `Zoom: ${scale.toFixed(2)}x`;
             debugInfo.innerHTML = `Offset: ${offsetX.toFixed(0)}, ${offsetY.toFixed(0)}<br>Scale: ${scale.toFixed(2)}x`;
+        }
+
+        // --- Helper: Draw Selection Box and Handles ---
+        function drawSelectionControls(context, width, height) {
+            const halfWidth = width / 2;
+            const halfHeight = height / 2;
+            const handleScreenSize = handleSize / scale; // Handle size in world coords
+            const rotOffsetScreen = rotationHandleOffset / scale; // Offset in world coords
+
+            context.strokeStyle = 'rgba(0, 150, 255, 0.8)';
+            context.lineWidth = 2 / scale;
+            
+            // Bounding box
+            context.setLineDash([6 / scale, 3 / scale]);
+            context.strokeRect(-halfWidth, -halfHeight, width, height);
+            context.setLineDash([]);
+
+            // Rotation Handles (Circles)
+            context.fillStyle = 'rgba(0, 150, 255, 0.8)';
+            const rotationHandlePositions = [
+                { x: halfWidth + rotOffsetScreen, y: -halfHeight - rotOffsetScreen },
+                { x: -halfWidth - rotOffsetScreen, y: -halfHeight - rotOffsetScreen },
+                { x: halfWidth + rotOffsetScreen, y: halfHeight + rotOffsetScreen },
+                { x: -halfWidth - rotOffsetScreen, y: halfHeight + rotOffsetScreen }
+            ];
+            rotationHandlePositions.forEach(pos => {
+                context.beginPath();
+                context.arc(pos.x, pos.y, handleScreenSize / 2, 0, Math.PI * 2);
+                context.fill();
+            });
+            
+            // TODO: Draw Scaling Handles later
         }
 
         // --- Tool Selection ---
@@ -490,8 +659,12 @@
 
         canvas.addEventListener('mousedown', (e) => {
             const startPos = screenToWorld(e.clientX, e.clientY);
-            console.log(`Mousedown - Tool: ${currentTool}, PlacingImage: ${isPlacingImage}`);
-            
+            const startScreenPos = { x: e.clientX, y: e.clientY };
+            console.log(`Mousedown - Tool: ${currentTool}`);
+            isDragging = false;
+            isRotating = false; // Reset rotating state
+            let rotationHandleHit = null; // Reset handle hit
+
             if (isPlacingImage && pendingImage) {
                 // Place the image
                 console.log("Placing image at", startPos);
@@ -515,6 +688,48 @@
                 pendingImage = null;
                 setActiveTool('pan'); // Revert to pan tool after placing
                 redrawCanvas();
+
+            } else if (currentTool === 'select') {
+                 selectedItem = null; // Deselect previous
+                 // --- Check for Handle Hits First ---
+                 for (let i = drawingData.length - 1; i >= 0; i--) {
+                      const item = drawingData[i];
+                      if (item.type === 'image') {
+                           rotationHandleHit = getHitRotationHandle(startScreenPos, item);
+                           if (rotationHandleHit) {
+                               console.log("Hit rotation handle:", rotationHandleHit);
+                               selectedItem = item; // Select item being rotated
+                               isRotating = true;
+                               break;
+                           }
+                      }
+                 }
+
+                 // --- If No Handle Hit, Check for Item Selection/Drag ---
+                 if (!isRotating) {
+                     for (let i = drawingData.length - 1; i >= 0; i--) {
+                         const item = drawingData[i];
+                         if (item.type === 'image' && isPointInImage(startPos, item)) {
+                             selectedItem = item;
+                             isDragging = true;
+                             dragOffsetX = startPos.x - selectedItem.x;
+                             dragOffsetY = startPos.y - selectedItem.y;
+                             console.log('Selected Image:', selectedItem);
+                             break; 
+                         }
+                     }
+                 }
+                 
+                 redrawCanvas(); // Show selection/handle interaction
+                 
+                 // Set cursor based on action
+                 if (isRotating) {
+                     canvas.style.cursor = 'crosshair'; // Replace with actual rotation cursor later
+                 } else if (isDragging) {
+                     canvas.style.cursor = 'move';
+                 } else {
+                    canvas.style.cursor = 'default';
+                 }
 
             } else if (currentTool === 'pan') {
                 console.log('Starting Pan');
@@ -550,8 +765,29 @@
 
         canvas.addEventListener('mousemove', (e) => {
              const currentPos = screenToWorld(e.clientX, e.clientY);
+             const currentScreenPos = { x: e.clientX, y: e.clientY };
+
+             // --- Rotating Selected Item Logic ---
+             if (isRotating && selectedItem && currentTool === 'select') {
+                 const center = { x: selectedItem.x, y: selectedItem.y };
+                 const currentAngle = Math.atan2(currentPos.y - center.y, currentPos.x - center.x);
+                 // Calculate initial angle on the fly (can be optimized by storing on mousedown)
+                 const startWorldPos = screenToWorld(startScreenPos.x, startScreenPos.y); // Requires startScreenPos to be accessible
+                 const startAngle = Math.atan2(startWorldPos.y - center.y, startWorldPos.x - center.x);
+                 
+                 selectedItem.angle = (selectedItem.angle || 0) + (currentAngle - startAngle);
+                 redrawCanvas();
+                 // Need to update startAngle continuously if calculating diff like this
+                 // A better way: store startItemAngle and startMouseAngle on mousedown
+                 // Then: selectedItem.angle = startItemAngle + (currentMouseAngle - startMouseAngle);
              
-            if (isPanning && currentTool === 'pan') {
+             } else if (isDragging && selectedItem && currentTool === 'select') {
+                 // Update item position based on mouse movement and initial offset
+                 selectedItem.x = currentPos.x - dragOffsetX;
+                 selectedItem.y = currentPos.y - dragOffsetY;
+                 redrawCanvas(); // Redraw to show movement
+             
+             } else if (isPanning && currentTool === 'pan') {
                  const dx = e.clientX - lastPanX;
                  const dy = e.clientY - lastPanY;
                  // console.log(`Panning - dx: ${dx}, dy: ${dy}`); // Can comment out for less noise
@@ -571,13 +807,32 @@
         });
 
         canvas.addEventListener('mouseup', (e) => {
-            console.log(`Mouseup - Tool: ${currentTool}`);
-            if (isPlacingImage) return; // Don't interfere with image placement click
-            if (isPanning && currentTool === 'pan') {
+             console.log(`Mouseup - Tool: ${currentTool}`);
+             if (isPlacingImage) return;
+
+             // --- Finalize Rotating ---
+             if (isRotating && selectedItem && currentTool === 'select') {
+                 console.log('Finished rotating', selectedItem);
+                 isRotating = false;
+                 saveDrawingData(); // Save the new angle
+                 canvas.style.cursor = 'default'; // Reset cursor 
+                 // Might need redraw if selection state changes appearance significantly on mouseup
+             }
+
+             // --- Finalize Dragging ---
+             if (isDragging && selectedItem && currentTool === 'select') {
+                 console.log('Finished dragging', selectedItem);
+                 isDragging = false;
+                 saveDrawingData(); // Save the new position
+                 canvas.style.cursor = 'default'; // Reset cursor after drag
+                 // Keep item selected, redraw happens implicitly below or if other actions occur
+             }
+
+             if (isPanning && currentTool === 'pan') {
                 console.log('Ending Pan');
                 isPanning = false;
                 canvas.style.cursor = 'grab';
-            } else if (isDrawing && currentTool === 'brush') {
+             } else if (isDrawing && currentTool === 'brush') {
                 isDrawing = false;
                 canvas.style.cursor = 'crosshair';
                 if (currentStroke && currentStroke.points.length > 1) {
@@ -589,7 +844,7 @@
                 }
                 currentStroke = null;
                 console.log('End Drawing - Total Strokes:', drawingData.length);
-            } else if (isDrawing && currentTool === 'eraser') {
+             } else if (isDrawing && currentTool === 'eraser') {
                 isDrawing = false;
                 canvas.style.cursor = 'cell'; // Reset cursor
                 console.log('Finishing Erase Path');
@@ -626,21 +881,43 @@
                 }
                 currentStroke = null; // Clear eraser path
                 redrawCanvas(); // Redraw with removed strokes
-            }
+             }
         });
 
         canvas.addEventListener('mouseleave', () => {
-            if (isPlacingImage) return; // Don't interfere with image placement
-            if (isPanning) {
+             if (isPlacingImage) return;
+
+              // --- Cancel Rotating if mouse leaves ---
+              if (isRotating && selectedItem && currentTool === 'select') {
+                  console.log('Cancelled rotating (mouse left)');
+                  isRotating = false;
+                  saveDrawingData(); // Save angle reached
+                  canvas.style.cursor = 'default';
+                  redrawCanvas(); // Ensure final state shown
+              }
+
+             // --- Cancel Dragging if mouse leaves ---
+             if (isDragging && selectedItem && currentTool === 'select') {
+                 console.log('Cancelled dragging (mouse left)');
+                 isDragging = false;
+                 // Decide if you want to revert position or save current position
+                 // Let's save the current position for now:
+                 saveDrawingData(); 
+                 canvas.style.cursor = 'default';
+                 // Keep item selected, redraw needed to ensure final state shown
+                 redrawCanvas();
+             }
+
+             if (isPanning) {
                 console.log('Ending Pan (mouse left)');
                 isPanning = false;
                 if(currentTool === 'pan') canvas.style.cursor = 'grab';
-            }
+             }
              if (isDrawing) {
-                const tool = currentStroke ? currentStroke.tool : null;
-                console.log(`Drawing stopped (mouse left), finalizing ${tool} path.`);
-                isDrawing = false;
-                 
+                 const tool = currentStroke ? currentStroke.tool : null;
+                 console.log(`Drawing stopped (mouse left), finalizing ${tool} path.`);
+                 isDrawing = false;
+                  
                  if (tool === 'brush' && currentStroke && currentStroke.points.length > 1) {
                      console.log('Storing stroke (mouse left):', currentStroke);
                      drawingData.push(currentStroke);
@@ -691,16 +968,17 @@
             redrawCanvas();
         });
 
-        // Initial setup
+        // --- Initial setup ---
         window.addEventListener('resize', resizeCanvas);
         setActiveTool('pan'); // Set initial tool ('pan') and cursor
         resizeCanvas(); // Initial draw loads strokes
 
-        // TODO: Implement Brush drawing logic properly
-        // TODO: Implement other tools (Select, Text, Eyedropper...)
-        // TODO: Implement data handling (storing strokes instead of static objects)
+        // TODO: Implement Text Tool
+        // TODO: Implement Image Resizing/Scaling
+        // TODO: Implement other tools (Select strokes, Eyedropper...)
+        // TODO: Implement data handling (more robust storage, maybe backend)
         // TODO: Implement real-time updates
 
     </script>
 </body>
-</html> 
+</html>
