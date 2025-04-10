@@ -308,68 +308,6 @@
                 const seekPosition = Math.floor(position * videoDuration);
                 player.seekTo(seekPosition, true);
             });
-            
-            function updateProgress() {
-                if (!player) return;
-                
-                try {
-                    // Player hazır değilse yeniden dene
-                    if (typeof player.getCurrentTime !== 'function') {
-                        console.log('Player henüz hazır değil, updateProgress yeniden denenecek');
-                        setTimeout(updateProgress, 500);
-                        return;
-                    }
-                    
-                    const currentTime = player.getCurrentTime() || 0;
-                    const duration = player.getDuration() || 0;
-                    
-                    // Süre henüz yüklenmemişse bekleme
-                    if (duration <= 0 || isNaN(duration)) {
-                        console.log('Video süresi alınamadı, yeniden denenecek');
-                        setTimeout(updateProgress, 500);
-                        return;
-                    }
-                    
-                    // videoDuration global değişkenini güncelle
-                    if (videoDuration !== duration) {
-                        videoDuration = duration;
-                        console.log('Video duration güncellendi:', videoDuration);
-                    }
-                    
-                    // İlerleme çubuğunu güncelle
-                    const progress = (currentTime / duration) * 100;
-                    progressBar.style.width = `${progress}%`;
-                    
-                    // Süre formatla (MM:SS)
-                    const formatTime = (time) => {
-                        if (isNaN(time) || time < 0) return "0:00";
-                        const minutes = Math.floor(time / 60);
-                        const seconds = Math.floor(time % 60);
-                        return `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
-                    };
-                    
-                    // Süre göstergesini güncelle
-                    const progressTime = document.getElementById('progressTime');
-                    if (progressTime) {
-                        progressTime.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`;
-                        
-                        // Debug için süre bilgisini yazdır
-                        console.log(`Süre: ${formatTime(currentTime)} / ${formatTime(duration)} (${currentTime.toFixed(2)}s / ${duration.toFixed(2)}s)`);
-                    }
-                    
-                    // Top göstergesinin görünürlüğünü kontrol et
-                    const topIndicator = progressBar.querySelector('::after') || progressBar;
-                    if (progress > 0) {
-                        // Bar üzerine hover olmasa bile topun görünür olması için
-                        progressContainer.classList.add('active-progress');
-                    }
-                } catch (e) {
-                    console.error("Error updating progress bar:", e);
-                }
-                
-                // Sürekli güncelleme için - çalıyor olup olmadığına bakılmaksızın güncelleme yapılır
-                requestAnimationFrame(updateProgress);
-            }
         });
         
         // Mouse Position Tracking
@@ -496,6 +434,76 @@
         
         // Sayfa yüklendiğinde yerel saat bilgisini başlat
         updateLocalTime();
+
+        // updateProgress fonksiyonunu buraya taşıyalım
+        function updateProgress() {
+            if (!player) return;
+            
+            try {
+                // Player hazır değilse yeniden dene
+                if (typeof player.getCurrentTime !== 'function') {
+                    console.log('Player henüz hazır değil, updateProgress yeniden denenecek');
+                    setTimeout(updateProgress, 500);
+                    return;
+                }
+                
+                const currentTime = player.getCurrentTime() || 0;
+                const duration = player.getDuration() || 0;
+                
+                // Süre henüz yüklenmemişse bekleme
+                if (duration <= 0 || isNaN(duration)) {
+                    console.log('Video süresi alınamadı, yeniden denenecek');
+                    setTimeout(updateProgress, 500);
+                    return;
+                }
+                
+                // videoDuration global değişkenini güncelle
+                if (videoDuration !== duration) {
+                    videoDuration = duration;
+                    console.log('Video duration güncellendi:', videoDuration);
+                }
+                
+                // İlerleme çubuğunu güncelle
+                const progress = (currentTime / duration) * 100;
+                const progressBar = document.getElementById('progressBar'); // Tanımı buraya alalım
+                if (progressBar) { // Elementin varlığını kontrol et
+                    progressBar.style.width = `${progress}%`;
+                }
+                
+                // Süre formatla (MM:SS)
+                const formatTime = (time) => {
+                    if (isNaN(time) || time < 0) return "0:00";
+                    const minutes = Math.floor(time / 60);
+                    const seconds = Math.floor(time % 60);
+                    return `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+                };
+                
+                // Süre göstergesini güncelle
+                const progressTime = document.getElementById('progressTime');
+                if (progressTime) {
+                    progressTime.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`;
+                    
+                    // Debug için süre bilgisini yazdır
+                    // console.log(`Süre: ${formatTime(currentTime)} / ${formatTime(duration)} (${currentTime.toFixed(2)}s / ${duration.toFixed(2)}s)`); // Debug için gerekirse açılabilir
+                }
+                
+                // Top göstergesinin görünürlüğünü kontrol et (Bu kısım DOMContentLoaded içinde kalabilir veya globalde de olabilir, şimdilik burada bırakalım)
+                const progressContainer = document.getElementById('progressContainer'); // Tanımı buraya alalım
+                if (progressBar && progressContainer) { // Elementlerin varlığını kontrol et
+                    if (progress > 0) {
+                        progressContainer.classList.add('active-progress');
+                    }
+                    // Not: ::after pseudo-elementini JS ile doğrudan seçemeyiz, bu kontrol işe yaramayabilir.
+                    // const topIndicator = progressBar.querySelector('::after') || progressBar;
+                }
+                
+            } catch (e) {
+                console.error("Error updating progress bar:", e);
+            }
+            
+            // Sürekli güncelleme için - çalıyor olup olmadığına bakılmaksızın güncelleme yapılır
+            requestAnimationFrame(updateProgress);
+        }
     </script>
 </body>
 </html> 
