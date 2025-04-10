@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Firestore Test</title>
+</head>
+<body>
+    <h1>Minimal Firestore Connection Test</h1>
+    <p>Check the browser console (F12 or Right Click -> Inspect -> Console) for logs.</p>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
+      import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore.js";
+      import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-auth.js";
+
+      // IMPORTANT: Copy your exact firebaseConfig here
+      const firebaseConfig = {
+        apiKey: "AIzaSyC5KQx0U5dl7e6hMcjhFZqPQiTPh_Qvs9s",
+        authDomain: "krraker-db.firebaseapp.com",
+        projectId: "krraker-db",
+        storageBucket: "krraker-db.firebasestorage.app",
+        messagingSenderId: "658555321674",
+        appId: "1:658555321674:web:6634ab758b652e350695b3",
+        measurementId: "G-58165Z0CB3" 
+      };
+
+      // Initialize Firebase
+      let app, db, auth;
+      let unsubscribe = null; // To store the listener unsubscribe function
+
+      try {
+        app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+        console.log('[Minimal Test] Firebase Initialized Successfully.');
+
+        // Authentication State Change Listener
+        onAuthStateChanged(auth, (user) => {
+          if (user) {
+            console.log('[Minimal Test] User signed in anonymously with UID:', user.uid);
+            
+            // --- Minimal Firestore Listener ---
+            console.log('[Minimal Test] Attempting to attach Firestore listener...');
+            const elementsCollectionRef = collection(db, 'canvasElements');
+            
+            // Detach any previous listener if it exists (e.g., if auth state changes rapidly)
+            if (unsubscribe) {
+              console.log('[Minimal Test] Detaching previous listener.');
+              unsubscribe();
+            }
+
+            unsubscribe = onSnapshot(elementsCollectionRef, 
+              (snapshot) => {
+                // We don't need to process the data here, just confirm connection
+                console.log('[Minimal Test] Firestore snapshot received successfully! Connection is working.');
+                // Optional: Log doc count to see if initial data arrives
+                console.log(`[Minimal Test] Snapshot contains ${snapshot.docs.length} documents.`); 
+              }, 
+              (error) => {
+                console.error('[Minimal Test] Error listening to Firestore:', error);
+                // Log the specific error object
+                console.error('[Minimal Test] Full error object:', JSON.stringify(error, null, 2)); 
+              }
+            );
+            console.log('[Minimal Test] Firestore listener attached.');
+            // --- End Minimal Firestore Listener ---
+
+          } else {
+            console.log('[Minimal Test] User is signed out. Signing in anonymously...');
+            // Detach listener if user signs out
+            if (unsubscribe) {
+              console.log('[Minimal Test] Detaching listener due to sign out.');
+              unsubscribe();
+              unsubscribe = null;
+            }
+            signInAnonymously(auth).catch(error => {
+              console.error("[Minimal Test] Error signing in anonymously:", error);
+            });
+          }
+        });
+
+      } catch (e) {
+        console.error('[Minimal Test] Error during Firebase initialization:', e);
+      }
+    </script>
+</body>
+</html> 

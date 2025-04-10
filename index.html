@@ -10,7 +10,7 @@
     <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body>
-    <a href="canvas.html" class="lab-button">Krraker Lab</a>
+    <a href="canvas.html" class="lab-button">🧪 Krraker Lab</a>
     <button class="invert-button">INVERT</button>
     <div id="localTimeIndicator">
         <span id="locationName">Loading...</span>
@@ -35,6 +35,11 @@
                 </div>
             </div>
         </div>
+    </div>
+    <!-- Playlist Dropdown -->
+    <div id="playlistDropdown" class="playlist-dropdown">
+        <button id="playlistToggleBtn" class="playlist-toggle-btn">▼</button>
+        <ul id="playlistItems" class="playlist-items"></ul>
     </div>
     
     <span id="mousePositionIndicator">
@@ -121,6 +126,44 @@
         let isPlaying = false;
         let videoDuration = 0;
         let currentPlaylistIndex = 0;
+        let playlistData = []; // Add this to store playlist info
+        let isPlaylistOpen = false; // Add this to track dropdown state
+        
+        // --- Manual Playlist Titles ---
+        const manualPlaylistTitles = [
+            "Air — Bossa 96 (Demo)",
+            "The Herbaliser — The Sensual Woman",
+            "Squarepusher — Beep Street",
+            "Air — Jeanne",
+            "Squarepusher — Seb-1.09",
+            "Birsen Tezer — Di Gel Yanıma",
+            "Amon Tobin — Nova",
+            "Air — Le voyage de Pénélope",
+            "Bülent Ortaçgil — Bu İş Çok Zor Yonca",
+            "Birsen Tezer — Değişrmenler", // Note: Typo might be intentional based on original
+            "Mount Kimbie — Shipwreck",
+            "Air — La femme d'argent",
+            "Air — Ce matin-là (Demo 2)",
+            "Air — Sexy Boy (Etienne de Crécy & the Flower Pistols Remix)",
+            "Boards Of Canada — Davyan Cowboy",
+            "Boards Of Canada — Roygbiv",
+            "Boards Of Canada — Gyroscope",
+            "Boards Of Canada — Olson",
+            "Bülent Ortaçgil — Şık Latife",
+            "Bülent Ortaçgil — Beni Kategorize Etme",
+            "Morcheeba — Blood Like Lemonade",
+            "Sibylle Baier — Tonight",
+            "Sibylle Baier — I Lost Something in the Hills",
+            "Sibylle Baier — Give Me a Smile",
+            "Elliott Smith — A Fond Farewell (2024 Remaster)", 
+            "Elliott Smith — Son Of Sam",
+            "Birsen Tezer — Aşk Bu değil",
+            "Squarepusher — Coopers World",
+            "Mount Kimbie — Empty And Silent (feat. King Krule)",
+            "Mount Kimbie — Fishbrain",
+            "Bar Italia — Nurse!"
+        ];
+        // ---
         
         // YouTube API'sini başlat
         function onYouTubeIframeAPIReady() {
@@ -167,9 +210,11 @@
             } else if (event.data == YT.PlayerState.PAUSED) {
                 isPlaying = false;
                 document.getElementById('playPauseBtn').innerHTML = '<span>&#9658;</span>';
+                highlightCurrentTrack(); // Update highlight on pause
             } else if (event.data == YT.PlayerState.ENDED) {
                 isPlaying = false;
                 document.getElementById('playPauseBtn').innerHTML = '<span>&#9658;</span>';
+                highlightCurrentTrack(); // Update highlight on end
             } else if (event.data == YT.PlayerState.CUED) {
                 // Şarkı değiştiğinde ismi güncelle (cued durumunda)
                 document.querySelector('.track-name').textContent = "Yükleniyor...";
@@ -180,75 +225,79 @@
                     progressTime.textContent = "0:00 / 0:00";
                 }
                 setTimeout(updateCurrentSongInfo, 500);
+                highlightCurrentTrack(); // Update highlight when title updates
             } else if (event.data == YT.PlayerState.BUFFERING) {
                 // Buffer durumunda da şarkı değişmiş olabilir
                 setTimeout(updateCurrentSongInfo, 1000);
             }
         }
         
-        // Güncel şarkı bilgisini güncelle - daha güvenilir
+        // Güncel şarkı bilgisini güncelle - MANUAL titles & MARQUEE
         function updateCurrentSongInfo() {
             try {
-                if (!player || typeof player.getVideoData !== 'function') {
-                    console.log('Player henüz hazır değil');
-                    setTimeout(updateCurrentSongInfo, 500);
+                if (!player || typeof player.getPlaylistIndex !== 'function') {
+                    console.log('Player not ready for song info.');
                     return;
                 }
 
-                // Çalma listesi içindeki geçerli şarkının başlığını almaya çalış
-                const videoData = player.getVideoData();
+                const currentIndex = player.getPlaylistIndex();
                 const trackNameElement = document.querySelector('.track-name');
-                
-                if (!videoData || !videoData.title) {
-                    console.log('Video verisi henüz yok, tekrar deneniyor...');
-                    // Veri yoksa biraz bekle ve tekrar dene
-                    setTimeout(updateCurrentSongInfo, 1000);
-                    return;
+                let displayText = manualPlaylistTitles[currentIndex] || `Şarkı ${currentIndex + 1}`; // Default or manual title
+
+                // --- Check if scrolling is needed and set content --- 
+                trackNameElement.innerHTML = ''; // Clear previous content
+                trackNameElement.classList.remove('scrolling'); // Remove class first
+
+                // Create a temporary span to measure text width
+                const tempSpan = document.createElement('span');
+                tempSpan.style.visibility = 'hidden'; // Don't show temporarily
+                tempSpan.style.position = 'absolute'; // Avoid affecting layout
+                tempSpan.textContent = displayText;
+                document.body.appendChild(tempSpan); // Add to body to measure
+                const textWidth = tempSpan.offsetWidth;
+                document.body.removeChild(tempSpan); // Remove temporary span
+
+                const containerWidth = trackNameElement.clientWidth; 
+
+                // Create the actual content span that will hold the text
+                const contentSpan = document.createElement('span');
+
+                if (textWidth > containerWidth) {
+                    console.log('Marquee needed. Text:', textWidth, 'Container:', containerWidth);
+                    // Set duplicated text in the single span
+                    // Add more non-breaking spaces for a clearer gap
+                    contentSpan.textContent = `${displayText}\u00A0\u00A0\u00A0\u00A0\u00A0${displayText}`;
+                    trackNameElement.appendChild(contentSpan);
+                    trackNameElement.classList.add('scrolling'); // Add class to parent container
+                } else {
+                    console.log('No marquee needed. Text:', textWidth, 'Container:', containerWidth);
+                    // Just display the text normally in the single span
+                    contentSpan.textContent = displayText;
+                    trackNameElement.appendChild(contentSpan);
+                    // No .scrolling class needed
                 }
-                
-                // Sanatçı bilgisini de göster (videoData.author)
-                let displayText = videoData.title;
-                if (videoData.author) {
-                    displayText = `${videoData.title} - ${videoData.author}`;
+                // ---
+
+                console.log(`Now playing (Index ${currentIndex}):`, displayText);
+
+                // Update duration info
+                const duration = player.getDuration() || 0;
+                if (videoDuration !== duration) {
+                    videoDuration = duration;
+                    console.log('Video duration updated:', videoDuration);
                 }
-                
-                trackNameElement.textContent = displayText;
-                
-                // Şarkı ismi uzunsa kaydırma animasyonunu etkinleştir
-                checkIfTitleNeedsScrolling(trackNameElement);
-                
-                console.log('Now playing:', displayText);
-                
-                // Şarkı değiştikçe ilerleme çubuğunu güncelle
-                videoDuration = player.getDuration() || 0;
-                console.log('Video duration updated:', videoDuration);
-                
-                // Süre göstergesini hemen güncelle
-                updateProgress();
+                updateProgress(); // Update progress bar display
+                highlightCurrentTrack(); // Highlight in the dropdown
+
             } catch (e) {
-                console.error('Error updating song info:', e);
-                // Hatadan sonra tekrar dene
-                setTimeout(updateCurrentSongInfo, 1000);
+                console.error('Error updating current song info:', e);
             }
         }
         
         // Şarkı ismi sığmayacak kadar uzunsa kaydırma animasyonunu etkinleştir
-        function checkIfTitleNeedsScrolling(element) {
-            // Önce varsa scrolling sınıfını kaldır ve doğal genişliğini hesapla
-            element.classList.remove('scrolling');
-            
-            // Element genişliğini hesapla - butonların ve kontrollerin genişliğini dikkate al
-            const containerWidth = document.querySelector('.track-info').clientWidth - 20; // Padding çıkar
-            
-            // Şarkı ismi container'a sığmıyorsa kaydırma animasyonunu etkinleştir
-            if (element.scrollWidth > containerWidth) {
-                element.classList.add('scrolling');
-                // Log bilgisi
-                console.log('Scrolling enabled. Text width:', element.scrollWidth, 'Container width:', containerWidth);
-            } else {
-                console.log('Text fits in container. Text width:', element.scrollWidth, 'Container width:', containerWidth);
-            }
-        }
+        // function checkIfTitleNeedsScrolling(element) { // REMOVED - Logic moved into updateCurrentSongInfo
+        //     // ... (old logic removed) ...
+        // }
         
         document.addEventListener('DOMContentLoaded', function() {
             const playPauseBtn = document.getElementById('playPauseBtn');
@@ -256,7 +305,26 @@
             const nextBtn = document.getElementById('nextBtn');
             const progressBar = document.getElementById('progressBar');
             const progressContainer = document.getElementById('progressContainer');
-            
+            const playlistDropdown = document.getElementById('playlistDropdown');
+            const playlistToggleBtn = document.getElementById('playlistToggleBtn');
+            const playlistItemsUl = document.getElementById('playlistItems');
+            const mediaPlayerContainer = document.getElementById('mediaPlayerContainer'); // Get player container
+
+            // --- Dynamically position the playlist dropdown below the player ---
+            function positionPlaylistDropdown() {
+                if (mediaPlayerContainer && playlistDropdown) {
+                    const playerRect = mediaPlayerContainer.getBoundingClientRect();
+                    const playerBottom = playerRect.bottom;
+                    // Add a small gap (e.g., 2px) below the player
+                    playlistDropdown.style.top = `${playerBottom + 2}px`; 
+                    console.log(`Playlist dropdown positioned at top: ${playlistDropdown.style.top}`);
+                }
+            }
+            positionPlaylistDropdown(); // Position initially
+            // Reposition on window resize (optional but good practice)
+            window.addEventListener('resize', positionPlaylistDropdown);
+            // ---
+
             // Play/Pause butonu
             playPauseBtn.addEventListener('click', function() {
                 if (isPlaying) {
@@ -308,6 +376,88 @@
                 const seekPosition = Math.floor(position * videoDuration);
                 player.seekTo(seekPosition, true);
             });
+
+            // Playlist Toggle Button
+            playlistToggleBtn.addEventListener('click', function() {
+                isPlaylistOpen = !isPlaylistOpen;
+                playlistDropdown.classList.toggle('open');
+                playlistToggleBtn.textContent = isPlaylistOpen ? '▲' : '▼'; // Change arrow direction
+                if (isPlaylistOpen && playlistData.length === 0) {
+                    // Fetch playlist data if not already fetched
+                    fetchPlaylistData(); 
+                }
+            });
+
+            // Function to fetch and populate playlist
+            function fetchPlaylistData() {
+                if (!player || typeof player.getPlaylist !== 'function') {
+                    console.log('Player not ready for playlist fetch.');
+                    playlistItemsUl.innerHTML = '<li class="playlist-item">Playlist yüklenemedi.</li>';
+                    return;
+                }
+                try {
+                    const playlist = player.getPlaylist(); // Get array of video IDs
+                    // const playlistMetadata = player.getPlaylistMetadata(); // REMOVED - Function doesn't exist
+
+                    if (!playlist || playlist.length === 0) {
+                        console.log('Playlist could not be retrieved or is empty.');
+                        playlistItemsUl.innerHTML = '<li class="playlist-item">Playlist boş.</li>';
+                        return;
+                    }
+                    
+                    playlistData = []; // Clear previous data
+                    playlistItemsUl.innerHTML = ''; // Clear existing list items
+                    console.log(`Found ${playlist.length} videos in playlist.`);
+
+                    // Use manual titles based on playlist index
+                    playlist.forEach((videoId, index) => {
+                        const title = manualPlaylistTitles[index] || `Şarkı ${index + 1}`; // Use manual title or placeholder
+                        playlistData.push({ videoId: videoId, title: title }); 
+                        const li = document.createElement('li');
+                        li.classList.add('playlist-item');
+                        li.textContent = title; 
+                        li.dataset.index = index;
+                        li.addEventListener('click', function() {
+                            try {
+                                player.playVideoAt(parseInt(this.dataset.index));
+                                // Close dropdown after selection (optional)
+                                isPlaylistOpen = false;
+                                playlistDropdown.classList.remove('open');
+                                playlistToggleBtn.textContent = '▼';
+                            } catch (playError) {
+                                console.error("Error playing video at index:", playError);
+                            }
+                        });
+                        playlistItemsUl.appendChild(li);
+                    });
+
+                    highlightCurrentTrack(); // Highlight after loading placeholders
+                    console.log('Playlist data populated with manual titles (or placeholders):', playlistData);
+
+                } catch (e) {
+                    console.error('Error processing playlist data:', e);
+                    playlistItemsUl.innerHTML = '<li class="playlist-item">Playlist işlenirken hata oluştu.</li>';
+                }
+            }
+
+            // Function to highlight the currently playing track in the list
+            function highlightCurrentTrack() {
+                 if (!player || typeof player.getPlaylistIndex !== 'function' || playlistData.length === 0) {
+                    return; // Exit if player or data not ready
+                 }
+                 const currentIndex = player.getPlaylistIndex();
+                 const items = playlistItemsUl.querySelectorAll('.playlist-item');
+                 items.forEach((item, index) => {
+                     if (index === currentIndex) {
+                         item.classList.add('active');
+                     } else {
+                         item.classList.remove('active');
+                     }
+                 });
+             }
+            
+             // Make highlight function global or accessible
+             window.highlightCurrentTrack = highlightCurrentTrack; 
         });
         
         // Mouse Position Tracking
