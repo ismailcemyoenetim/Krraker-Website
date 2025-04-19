@@ -1,13 +1,646 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Profil</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile | Kraker</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, updateProfile, updateEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        
+        // Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyD55KdXc0PcnhIh9WgdcByS0-EVvk4pxxI",
+          authDomain: "email-kraker.firebaseapp.com",
+          projectId: "email-kraker",
+          storageBucket: "email-kraker.firebasestorage.app",
+          messagingSenderId: "887189683401",
+          appId: "1:887189683401:web:15b6a238b8d24319ece118",
+          measurementId: "G-TE7M225KP7"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const profileContainer = document.querySelector('.profile-container');
+            const loadingMessage = document.getElementById('loading-message');
+            const errorMessage = document.getElementById('error-message');
+            const profileContent = document.getElementById('profile-content');
+            const userNameElement = document.getElementById('user-name');
+            const userEmailElement = document.getElementById('user-email');
+            const signOutBtn = document.getElementById('sign-out-btn');
+            const updateProfileForm = document.getElementById('update-profile-form');
+            const updateEmailForm = document.getElementById('update-email-form');
+            const updatePasswordForm = document.getElementById('update-password-form');
+            const statusMessages = document.querySelectorAll('.status-message');
+            
+            // Check authentication state
+            onAuthStateChanged(auth, (user) => {
+                loadingMessage.style.display = 'none';
+                
+                if (user) {
+                    // User is signed in
+                    profileContent.style.display = 'block';
+                    userNameElement.textContent = user.displayName || 'No name set';
+                    userEmailElement.textContent = user.email;
+                    
+                    // Display email verification status
+                    const verificationStatus = document.getElementById('verification-status');
+                    const verifyEmailBtn = document.getElementById('verify-email-btn');
+                    
+                    if (user.emailVerified) {
+                        verificationStatus.textContent = 'Verified';
+                        verificationStatus.className = 'verified';
+                        verifyEmailBtn.style.display = 'none';
+                    } else {
+                        verificationStatus.textContent = 'Not Verified';
+                        verificationStatus.className = 'not-verified';
+                        verifyEmailBtn.style.display = 'inline-block';
+                        
+                        // Handle email verification
+                        verifyEmailBtn.addEventListener('click', async () => {
+                            try {
+                                await sendEmailVerification(user);
+                                showError('Verification email sent. Please check your inbox and spam folder.');
+                            } catch (error) {
+                                console.error('Error sending verification email:', error);
+                                showError(getErrorMessage(error.code) || 'Failed to send verification email.');
+                            }
+                        });
+                    }
+                    
+                    // Set welcome name
+                    const welcomeNameElement = document.getElementById('welcome-name');
+                    if (welcomeNameElement) {
+                        welcomeNameElement.textContent = user.displayName || 'User';
+                    }
+                    
+                    // Handle sign out
+                    signOutBtn.addEventListener('click', async () => {
+                        try {
+                            await signOut(auth);
+                            window.location.href = '../index.html';
+                        } catch (error) {
+                            console.error('Error signing out:', error);
+                            showError('Failed to sign out. Please try again.');
+                        }
+                    });
+                    
+                    // Handle profile update
+                    if (updateProfileForm) {
+                        updateProfileForm.addEventListener('submit', async (e) => {
+                            e.preventDefault();
+                            const displayName = document.getElementById('display-name').value.trim();
+                            
+                            if (!displayName) {
+                                showStatus(updateProfileForm, 'Please enter a display name', 'error');
+                                return;
+                            }
+                            
+                            try {
+                                await updateProfile(auth.currentUser, { displayName });
+                                userNameElement.textContent = displayName;
+                                showStatus(updateProfileForm, 'Profile updated successfully', 'success');
+                            } catch (error) {
+                                console.error('Error updating profile:', error);
+                                showStatus(updateProfileForm, 'Failed to update profile', 'error');
+                            }
+                        });
+                    }
+                    
+                    // Handle email update
+                    if (updateEmailForm) {
+                        updateEmailForm.addEventListener('submit', async (e) => {
+                            e.preventDefault();
+                            const newEmail = document.getElementById('new-email').value.trim();
+                            const password = document.getElementById('current-password-email').value;
+                            
+                            if (!newEmail || !password) {
+                                showStatus(updateEmailForm, 'Please fill in all fields', 'error');
+                                return;
+                            }
+                            
+                            try {
+                                // Re-authenticate user
+                                const credential = EmailAuthProvider.credential(auth.currentUser.email, password);
+                                await reauthenticateWithCredential(auth.currentUser, credential);
+                                
+                                // Update email
+                                await updateEmail(auth.currentUser, newEmail);
+                                userEmailElement.textContent = newEmail;
+                                showStatus(updateEmailForm, 'Email updated successfully', 'success');
+                            } catch (error) {
+                                console.error('Error updating email:', error);
+                                showStatus(updateEmailForm, getErrorMessage(error.code), 'error');
+                            }
+                        });
+                    }
+                    
+                    // Handle password update
+                    if (updatePasswordForm) {
+                        updatePasswordForm.addEventListener('submit', async (e) => {
+                            e.preventDefault();
+                            const currentPassword = document.getElementById('current-password').value;
+                            const newPassword = document.getElementById('new-password').value;
+                            const confirmPassword = document.getElementById('confirm-password').value;
+                            
+                            if (!currentPassword || !newPassword || !confirmPassword) {
+                                showStatus(updatePasswordForm, 'Please fill in all fields', 'error');
+                                return;
+                            }
+                            
+                            if (newPassword !== confirmPassword) {
+                                showStatus(updatePasswordForm, 'New passwords do not match', 'error');
+                                return;
+                            }
+                            
+                            if (newPassword.length < 6) {
+                                showStatus(updatePasswordForm, 'Password must be at least 6 characters', 'error');
+                                return;
+                            }
+                            
+                            try {
+                                // Re-authenticate user
+                                const credential = EmailAuthProvider.credential(auth.currentUser.email, currentPassword);
+                                await reauthenticateWithCredential(auth.currentUser, credential);
+                                
+                                // Update password
+                                await updatePassword(auth.currentUser, newPassword);
+                                showStatus(updatePasswordForm, 'Password updated successfully', 'success');
+                                
+                                // Clear password fields
+                                document.getElementById('current-password').value = '';
+                                document.getElementById('new-password').value = '';
+                                document.getElementById('confirm-password').value = '';
+                            } catch (error) {
+                                console.error('Error updating password:', error);
+                                showStatus(updatePasswordForm, getErrorMessage(error.code), 'error');
+                            }
+                        });
+                    }
+                } else {
+                    // User is not signed in, redirect to login page
+                    window.location.href = 'login.html?redirect=profile';
+                }
+            });
+            
+            // Helper function to show status messages
+            function showStatus(form, message, type) {
+                const statusMessage = form.querySelector('.status-message');
+                statusMessage.textContent = message;
+                statusMessage.className = 'status-message';
+                statusMessage.classList.add(type);
+                statusMessage.style.display = 'block';
+                
+                setTimeout(() => {
+                    statusMessage.style.display = 'none';
+                }, 3000);
+            }
+            
+            // Helper function to show error message
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+                
+                setTimeout(() => {
+                    errorMessage.style.display = 'none';
+                }, 3000);
+            }
+            
+            // Helper function to get user-friendly error messages
+            function getErrorMessage(errorCode) {
+                switch(errorCode) {
+                    case 'auth/requires-recent-login':
+                        return 'This operation requires recent authentication. Please log out and log in again.';
+                    case 'auth/email-already-in-use':
+                        return 'This email is already in use';
+                    case 'auth/invalid-email':
+                        return 'Invalid email address format';
+                    case 'auth/weak-password':
+                        return 'Password is too weak';
+                    case 'auth/wrong-password':
+                        return 'Incorrect password';
+                    default:
+                        return 'An error occurred. Please try again.';
+                }
+            }
+        });
+    </script>
+    <style>
+        .profile-container {
+            padding: 50px 20px 110px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 195px);
+            margin-top: -50px;
+        }
+        
+        .profile-wrapper {
+            width: 100%;
+            max-width: 800px;
+            padding: 2.5rem;
+            color: var(--text-color);
+            background-color: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: border 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .profile-wrapper:hover {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(255, 255, 255, 0.05),
+                        0 0 8px var(--grid-glow-outer),
+                        0 0 16px var(--grid-glow-far);
+        }
+        
+        .profile-wrapper h1 {
+            margin-bottom: 2rem;
+            color: var(--grid-glow);
+            letter-spacing: 0px;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+        
+        .profile-section {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .profile-section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .profile-section h2 {
+            margin-bottom: 1rem;
+            color: var(--text-color);
+            font-size: 1.4rem;
+        }
+        
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .user-info p {
+            margin: 0;
+        }
+        
+        .user-info label {
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .profile-form {
+            margin-top: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            color: var(--text-color);
+            font-family: Helvetica, Arial, sans-serif;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--grid-glow);
+            box-shadow: 0 0 8px var(--grid-glow-outer);
+        }
+        
+        .profile-btn {
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            font-family: Helvetica, Arial, sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .profile-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--grid-glow);
+            box-shadow: 0 0 8px var(--grid-glow-outer),
+                        0 0 16px var(--grid-glow-far);
+        }
+        
+        .sign-out-btn {
+            background-color: rgba(255, 77, 77, 0.1);
+            border-color: rgba(255, 77, 77, 0.3);
+        }
+        
+        .sign-out-btn:hover {
+            background-color: rgba(255, 77, 77, 0.2);
+            border-color: rgba(255, 77, 77, 0.5);
+        }
+        
+        .status-message {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        
+        .status-message.success {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+        }
+        
+        .status-message.error {
+            background-color: rgba(255, 77, 77, 0.1);
+            color: #ff4d4d;
+        }
+        
+        #loading-message, #error-message {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        #error-message {
+            color: #ff4d4d;
+            display: none;
+        }
+        
+        #profile-content {
+            display: none;
+        }
+        
+        .welcome-message {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        #welcome-name {
+            font-weight: bold;
+            color: var(--grid-glow);
+        }
+        
+        /* Verification status styles */
+        #verification-status {
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        
+        #verification-status.verified {
+            color: #4CAF50;
+            background-color: rgba(76, 175, 80, 0.1);
+        }
+        
+        #verification-status.not-verified {
+            color: #ff4d4d;
+            background-color: rgba(255, 77, 77, 0.1);
+        }
+        
+        #verify-email-btn {
+            margin-left: 10px;
+            background-color: rgba(255, 193, 7, 0.2);
+            border-color: rgba(255, 193, 7, 0.4);
+        }
+        
+        #verify-email-btn:hover {
+            background-color: rgba(255, 193, 7, 0.3);
+            border-color: rgba(255, 193, 7, 0.5);
+        }
+    </style>
 </head>
 <body>
-    <div class="profile-container">
-        <div class="user-info"></div>
-        <div class="order-history"></div>
-        <div class="favorites"></div>
+    <button class="invert-button">
+        <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+    <div id="localTimeIndicator">
+        <span id="locationName">Loading...</span>
+        <span id="localTime">--:--:--</span>
     </div>
+    
+    <nav class="main-nav">
+        <div class="left-menu-container">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link">MENU</a>
+                    <div class="dropdown">
+                        <ul>
+                            <li><a href="../pages/about.html">About</a></li>
+                            <li><a href="../pages/contact.html">Contact</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">SHOP</a>
+                    <div class="dropdown">
+                        <ul>
+                            <li><a href="../pages/shop/apparel.html">Apparel</a></li>
+                            <li><a href="../pages/shop/accessories.html">Accessories</a></li>
+                            <li><a href="../pages/shop/homegoods.html">Home goods</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">PROJECTS</a>
+                    <div class="dropdown">
+                        <ul>
+                            <li><a href="../pages/projects/current.html">Current</a></li>
+                            <li><a href="../pages/projects/past.html">Past</a></li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="logo">
+            <a href="../index.html">
+                <img src="../images/KrakerLogo.png" alt="Kraker Logo">
+            </a>
+        </div>
+        
+        <div class="right-menu-container">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="../pages/login.html" class="nav-link">LOGIN</a>
+                </li>
+                <li class="nav-item">
+                    <a href="../pages/register.html" class="nav-link">REGISTER</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">CART</a>
+                    <div class="dropdown">
+                        <ul>
+                            <li><a href="../pages/cart/items.html">Items</a></li>
+                            <li><a href="../pages/cart/checkout.html">Checkout</a></li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div id="gridContainer" class="grid-container"></div>
+    
+    <div class="content-area">
+        <div class="profile-container">
+            <div class="profile-wrapper">
+                <h1>MY PROFILE</h1>
+                
+                <div id="loading-message">Loading your profile...</div>
+                <div id="error-message"></div>
+                
+                <div id="profile-content">
+                    <div class="welcome-message">
+                        Welcome, <span id="welcome-name">User</span>! Manage your account settings below.
+                    </div>
+                    
+                    <div class="profile-section">
+                        <h2>Account Information</h2>
+                        <div class="user-info">
+                            <p><label>Name:</label> <span id="user-name">--</span></p>
+                            <p><label>Email:</label> <span id="user-email">--</span></p>
+                            <p><label>Verification Status:</label> <span id="verification-status">--</span></p>
+                        </div>
+                        <button id="sign-out-btn" class="profile-btn sign-out-btn">SIGN OUT</button>
+                        <button id="verify-email-btn" style="display: none;" class="profile-btn">Verify Email</button>
+                    </div>
+                    
+                    <div class="profile-section">
+                        <h2>Update Profile</h2>
+                        <form id="update-profile-form" class="profile-form">
+                            <div class="form-group">
+                                <label for="display-name">Display Name</label>
+                                <input type="text" id="display-name" name="display-name" placeholder="Enter new display name">
+                            </div>
+                            <button type="submit" class="profile-btn">UPDATE PROFILE</button>
+                            <div class="status-message"></div>
+                        </form>
+                    </div>
+                    
+                    <div class="profile-section">
+                        <h2>Update Email</h2>
+                        <form id="update-email-form" class="profile-form">
+                            <div class="form-group">
+                                <label for="new-email">New Email</label>
+                                <input type="email" id="new-email" name="new-email" placeholder="Enter new email">
+                            </div>
+                            <div class="form-group">
+                                <label for="current-password-email">Current Password</label>
+                                <input type="password" id="current-password-email" name="current-password-email" placeholder="Enter current password to confirm">
+                            </div>
+                            <button type="submit" class="profile-btn">UPDATE EMAIL</button>
+                            <div class="status-message"></div>
+                        </form>
+                    </div>
+                    
+                    <div class="profile-section">
+                        <h2>Update Password</h2>
+                        <form id="update-password-form" class="profile-form">
+                            <div class="form-group">
+                                <label for="current-password">Current Password</label>
+                                <input type="password" id="current-password" name="current-password" placeholder="Enter current password">
+                            </div>
+                            <div class="form-group">
+                                <label for="new-password">New Password</label>
+                                <input type="password" id="new-password" name="new-password" placeholder="Enter new password">
+                            </div>
+                            <div class="form-group">
+                                <label for="confirm-password">Confirm New Password</label>
+                                <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm new password">
+                            </div>
+                            <button type="submit" class="profile-btn">UPDATE PASSWORD</button>
+                            <div class="status-message"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="../scripts/grid.js"></script>
+    <script src="../scripts/direction-hover.js"></script>
+    <!-- Auth UI script for navigation updates -->
+    <script type="module" src="../scripts/auth-ui.js"></script>
+    <script>
+        // Update time display
+        function updateLocalTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { 
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('localTime').textContent = timeStr;
+            
+            // Update location if not already set
+            if(document.getElementById('locationName').textContent === "Loading...") {
+                document.getElementById('locationName').textContent = "LOCAL";
+            }
+        }
+        
+        // Initialize time display
+        updateLocalTime();
+        setInterval(updateLocalTime, 1000);
+        
+        // Handle invert button
+        document.querySelector('.invert-button').addEventListener('click', function() {
+            // Add rotation animation to button
+            this.classList.add('theme-switching');
+            
+            // Toggle inverted class on body
+            document.body.classList.toggle('inverted');
+            
+            // Remove animation class after transition completes
+            setTimeout(() => {
+                this.classList.remove('theme-switching');
+            }, 500);
+        });
+    </script>
 </body>
 </html> 

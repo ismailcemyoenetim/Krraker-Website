@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chess Puzzle - Access Projects</title>
+    <title>Chess Puzzle - Get Shop Discount</title>
     <link rel="stylesheet" href="../styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
@@ -238,41 +238,26 @@
             }
         }
 
-        /* Mouse Indicator & Back Button Styles */
-        #mouseIndicator {
+        /* Back Button Styles */
+        .back-button {
             position: fixed;
             top: 20px;
-            right: 20px;
+            left: 20px;
             background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(5px);
             color: var(--text-color);
             padding: 5px 10px;
             border-radius: 5px;
             font-size: 0.8rem;
-            z-index: 900; /* Below puzzle container */
-            pointer-events: none; /* Prevent interaction */
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .nav-back {
-            position: fixed;
-            top: 20px; /* Or bottom: 20px; */
-            left: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(5px);
-            color: var(--text-color);
-            padding: 8px 15px;
-            border-radius: 5px;
-            font-size: 0.9rem;
             text-decoration: none;
-            z-index: 900; /* Below puzzle container */
+            z-index: 1000; /* Above puzzle container */
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s ease;
         }
 
-        .nav-back:hover {
+        .back-button:hover {
             background: rgba(0, 0, 0, 0.5);
-            color: var(--grid-glow);
+            transform: translateX(-2px);
         }
 
         /* Timeout Message Style */
@@ -291,27 +276,47 @@
             margin-top: 0.5rem;
             display: block; /* Ensure it's on a new line */
         }
+        
+        /* Discount badge style */
+        .discount-info {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            background: var(--grid-glow);
+            color: black;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            z-index: 1000;
+            display: none;
+            animation: pulseGlow 2s infinite;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+        }
+        
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 5px var(--grid-glow); }
+            50% { box-shadow: 0 0 15px var(--grid-glow), 0 0 30px var(--grid-glow); }
+            100% { box-shadow: 0 0 5px var(--grid-glow); }
+        }
     </style>
 </head>
 <body>
     <div id="gridContainer" class="grid-container"></div>
     
     <!-- Background Shapes -->
-    <!-- Mouse Indicator -->
-    <div id="mouseIndicator">X: 0, Y: 0</div>
-
-    <!-- Back to Home Button -->
-    <a href="../index.html" class="nav-back">Back to Home</a>
-
     <div class="background-shapes">
         <div class="shape shape-1"></div>
         <div class="shape shape-2"></div>
         <div class="shape shape-3"></div>
     </div>
 
+    <!-- Back Button -->
+    <a href="../index.html" class="back-button">← Back</a>
+
     <div class="puzzle-container">
         <div class="puzzle-description">
-            To access the projects page, solve the chess puzzle.
+            Solve this chess puzzle to earn a 50% discount on all shop items!
             <br>You have 1 minute and 2 attempts.
         </div>
 
@@ -331,7 +336,7 @@
             <button id="submitMove">Submit</button>
         </div>
         <div class="error-message" id="errorMessage">Incorrect move! Try again.</div>
-        <div class="success-message" id="successMessage">Correct! Redirecting to projects...</div>
+        <div class="success-message" id="successMessage">Correct! You've earned a 50% discount!</div>
     </div>
 
     <script src="../scripts/grid.js"></script>
@@ -481,12 +486,12 @@
             // Show message and redirect (or just redirect immediately)
             const puzzleContainer = document.querySelector('.puzzle-container');
             if(puzzleContainer) {
-                puzzleContainer.innerHTML = `<div class="timeout-message">Time is up!<br>You are blocked from trying again for 30 minutes.<br>Redirecting home...</div>`;
+                puzzleContainer.innerHTML = `<div class="timeout-message">Time is up!<br>You are blocked from trying again for 30 minutes.<br>Redirecting to shop...</div>`;
             }
 
-            // Redirect to home page after 3 seconds
+            // Redirect to shop page after 3 seconds
             setTimeout(() => {
-                window.location.href = '../index.html';
+                window.location.href = 'shop/apparel.html';
             }, 2000);
         }
 
@@ -516,9 +521,14 @@
         function handleCorrectMove() {
             clearInterval(timer);
             document.getElementById('successMessage').style.display = 'block';
-            localStorage.setItem('puzzleSolved', 'true');
+            
+            // Set discount in localStorage with expiration time (24 hours)
+            const expiryTime = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+            localStorage.setItem('shopDiscount', '50');
+            localStorage.setItem('shopDiscountExpiry', expiryTime);
+            
             setTimeout(() => {
-                window.location.href = 'projects.html';
+                window.location.href = 'shop/apparel.html';
             }, 1500);
         }
 
@@ -536,12 +546,12 @@
                 // Show message and redirect
                 const puzzleContainer = document.querySelector('.puzzle-container');
                 if(puzzleContainer) {
-                    puzzleContainer.innerHTML = `<div class="timeout-message">No attempts left!<br>You are blocked from trying again for 30 minutes.<br>Redirecting home...</div>`;
+                    puzzleContainer.innerHTML = `<div class="timeout-message">No attempts left!<br>You are blocked from trying again for 30 minutes.<br>Redirecting to shop...</div>`;
                 }
 
-                // Redirect to home page after 3 seconds
+                // Redirect to shop page after 3 seconds
                 setTimeout(() => {
-                    window.location.href = '../index.html';
+                    window.location.href = 'shop/apparel.html';
                 }, 3000);
             } else {
                 // Show temporary incorrect message (consider using the existing message divs)
@@ -576,11 +586,9 @@
                     puzzleContainer.style.opacity = 1; // Ensure container is visible
                     puzzleContainer.style.animation = 'none'; // Disable entry animation
                     
-                     // Optionally hide back button and mouse indicator during timeout
-                     const backButton = document.querySelector('.nav-back');
-                     const mouseIndicator = document.getElementById('mouseIndicator');
+                     // Optionally hide back button during timeout
+                     const backButton = document.querySelector('.back-button');
                      if(backButton) backButton.style.display = 'none';
-                     if(mouseIndicator) mouseIndicator.style.display = 'none';
 
                      // Start the countdown timer
                      timeoutIntervalId = setInterval(updateCountdown, 1000);
@@ -618,12 +626,6 @@
 
                 // Start the timer
                 startTimer();
-            });
-
-            // Mouse position indicator logic
-            const mouseIndicator = document.getElementById('mouseIndicator');
-            document.addEventListener('mousemove', (e) => {
-                mouseIndicator.textContent = `X: ${e.clientX}, Y: ${e.clientY}`;
             });
         });
 

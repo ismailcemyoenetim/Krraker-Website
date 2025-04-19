@@ -1,0 +1,143 @@
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+:root {
+  --terminal-bg: #000000;
+  --terminal-text: #33ff33;
+  --terminal-dim: #1a8a1a;
+  --terminal-accent: #00ff00;
+  --terminal-border: #224422;
+  --terminal-highlight: #446644;
+  --channel-bg: #001100;
+  --channel-active: #002200;
+  --sidebar-bg: #001a00;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--terminal-bg);
+  color: var(--terminal-text);
+  font-family: 'VT323', 'Courier New', monospace;
+}
+
+.screen {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--terminal-bg);
+  animation: flicker 0.15s infinite;
+}
+
+.screen::before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  );
+  background-size: 100% 4px;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.15;
+}
+
+.screen::after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(0, 50, 0, 0.2) 0%,
+    rgba(0, 20, 0, 0.3) 70%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+@keyframes flicker {
+  0% { opacity: 0.97; }
+  5% { opacity: 0.98; }
+  10% { opacity: 0.9; }
+  15% { opacity: 0.98; }
+  20% { opacity: 0.96; }
+  25% { opacity: 0.99; }
+  30% { opacity: 0.98; }
+  35% { opacity: 0.95; }
+  40% { opacity: 0.97; }
+  45% { opacity: 0.99; }
+  50% { opacity: 0.98; }
+  55% { opacity: 0.97; }
+  60% { opacity: 0.97; }
+  65% { opacity: 0.98; }
+  70% { opacity: 0.97; }
+  75% { opacity: 0.99; }
+  80% { opacity: 0.98; }
+  85% { opacity: 0.98; }
+  90% { opacity: 0.96; }
+  95% { opacity: 0.98; }
+  100% { opacity: 0.97; }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--terminal-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--terminal-dim);
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--terminal-accent);
+}
+
+/* Text styles */
+.blink {
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.glow {
+  text-shadow: 0 0 5px var(--terminal-accent);
+}
+
+/* Button and input reset */
+button, input {
+  font-family: 'VT323', 'Courier New', monospace;
+  background: var(--terminal-bg);
+  color: var(--terminal-text);
+  border: 1px solid var(--terminal-border);
+  outline: none;
+}
+
+button:hover, input:focus {
+  border-color: var(--terminal-accent);
+  box-shadow: 0 0 5px var(--terminal-accent);
+} 

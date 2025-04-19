@@ -21,7 +21,7 @@ const db = admin.firestore();
 
 // Express uygulamasını oluştur
 const app = express();
-const port = 3000; // Sunucunun çalışacağı port
+const port = 8989; // Sunucunun çalışacağı port
 
 // Gelen JSON verilerini parse etmek için middleware
 app.use(express.json());

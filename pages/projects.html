@@ -239,20 +239,29 @@
             color: rgba(0, 0, 0, 0.7);
         }
     </style>
+    <script src="../scripts/media-player.js"></script>
 </head>
 <body>
-    <script>
-        // Puzzle Access Control
-        if (localStorage.getItem('puzzleSolved') !== 'true') {
-            // If puzzle not solved, redirect to puzzle page
-            window.location.href = 'puzzle.html';
-        } else {
-            // Optional: Clear the flag after successful access if you want the puzzle shown every time
-            // localStorage.removeItem('puzzleSolved'); 
-        }
-    </script>
-    
-    <button class="invert-button">INVERT</button>
+    <a href="../index.html" class="back-button">← Back</a>
+
+    <!-- Color Invert Button -->
+    <button class="invert-button">
+        <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+
     <div id="localTimeIndicator">
         <span id="locationName">Loading...</span>
         <span id="localTime">--:--:--</span>
@@ -283,11 +292,6 @@
             </div>
         </div>
     </div>
-    
-    <span id="mousePositionIndicator">
-        <span id="xPosition">X: 0</span>
-        <span id="yPosition">Y: 0</span>
-    </span>
     
     <nav class="main-nav">
         <div class="left-menu-container">
@@ -333,7 +337,7 @@
         <div class="right-menu-container">
             <ul class="nav-menu">
                 <li class="nav-item">
-                    <a href="#" class="nav-link">LOGIN</a>
+                    <a href="../pages/login.html" class="nav-link">LOGIN</a>
                     <div class="dropdown">
                         <ul>
                             <li><a href="../pages/login/email.html">Email Login</a></li>
@@ -707,31 +711,6 @@
                 
                 // Sürekli güncelleme için - çalıyor olup olmadığına bakılmaksızın güncelleme yapılır
                 requestAnimationFrame(updateProgress);
-            }
-        });
-        
-        // Mouse Position Tracking
-        document.addEventListener('mousemove', function(event) {
-            const xPositionElem = document.getElementById('xPosition');
-            const yPositionElem = document.getElementById('yPosition');
-            
-            // Update position text
-            xPositionElem.textContent = `X: ${event.clientX}`;
-            yPositionElem.textContent = `Y: ${event.clientY}`;
-        });
-        
-        // Renk tersine çevirme fonksiyonu
-        document.querySelector('.invert-button').addEventListener('click', function() {
-            document.body.classList.toggle('inverted');
-            const isInverted = document.body.classList.contains('inverted');
-            localStorage.setItem('colorInverted', isInverted);
-        });
-        
-        // Sayfa yüklendiğinde kullanıcının önceki tercihini kontrol et
-        window.addEventListener('load', function() {
-            const isInverted = localStorage.getItem('colorInverted') === 'true';
-            if (isInverted) {
-                document.body.classList.add('inverted');
             }
         });
         

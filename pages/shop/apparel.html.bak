@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apparel - CemSite Grid System</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://w.soundcloud.com/player/api.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <style>
+        /* Additional styles for apparel page */
+        body {
+            overflow: auto;
+            background: black;
+        }
+        
+        #gridContainer.grid-container {
+            opacity: 0.6;
+        }
+        
+        .content-area {
+            height: auto;
+            min-height: 100vh;
+            width: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            z-index: 100;
+            position: relative;
+            padding-bottom: 100px;
+            padding-top: 100px;
+            background: transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        /* Background elements for the frosted glass effect */
+        .background-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            filter: blur(80px);
+            pointer-events: none;
+        }
+        
+        .shape-1 {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 70%);
+            top: 20%;
+            left: 10%;
+            animation: float 15s ease-in-out infinite;
+        }
+        
+        .shape-2 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 70%);
+            bottom: 10%;
+            right: 15%;
+            animation: float 20s ease-in-out infinite reverse;
+        }
+        
+        .shape-3 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 70%);
+            top: 40%;
+            right: 30%;
+            animation: float 18s ease-in-out infinite 2s;
+        }
+        
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(5%, 5%); }
+            50% { transform: translate(10%, -5%); }
+            75% { transform: translate(-5%, 10%); }
+            100% { transform: translate(0, 0); }
+        }
+        
+        /* Inverted mode adjustments for shapes */
+        .inverted .shape-1 {
+            background: radial-gradient(circle, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 70%);
+        }
+        
+        .inverted .shape-2 {
+            background: radial-gradient(circle, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 70%);
+        }
+        
+        .inverted .shape-3 {
+            background: radial-gradient(circle, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 70%);
+        }
+        
+        .apparel-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            padding: 20px;
+            width: 80%;
+            max-width: 1200px;
+            margin: 50px auto;
+            background-color: black;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            min-height: 100vh;
+            border-bottom: none;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .grid-item {
+            aspect-ratio: 2/3;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        /* Add glow animation for grid items on hover */
+        .grid-item:hover {
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 0 15px rgba(75, 0, 130, 0.7), 0 0 30px rgba(75, 0, 130, 0.5);
+            z-index: 10; /* Make sure glowing items appear above others */
+        }
+        
+        .grid-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            position: relative;
+            z-index: 0; /* Ensure image is below the overlay */
+        }
+        
+        .grid-item img.loaded {
+            opacity: 1;
+        }
+        
+        /* Product info styles */
+        .product-info {
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 11; /* Ensure product info stays visible */
+        }
+
+        .product-price {
+            font-family: 'Helvetica', Arial, sans-serif;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .product-price .original-price {
+            text-decoration: line-through;
+            color: rgba(255, 255, 255, 0.5);
+            margin-right: 10px;
+        }
+
+        .product-price .discount-price {
+            color: #00FF00;
+        }
+
+        .product-category {
+            font-family: 'Helvetica', Arial, sans-serif;
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .product-description {
+            font-family: 'Helvetica', Arial, sans-serif;
+            font-size: 0.8em;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.4;
+        }
+        
+        /* Product overlay styles */
+        .product-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            background: linear-gradient(to top, 
+                rgba(0, 0, 0, 0.85) 0%, 
+                rgba(0, 0, 0, 0.75) 30%,
+                rgba(0, 0, 0, 0.65) 60%,
+                rgba(0, 0, 0, 0) 100%
+            );
+            pointer-events: none;
+            height: 40%;
+            display: none; /* Hide by default */
+        }
+
+        .grid-item:hover .product-overlay {
+            display: block; /* Show on hover */
+        }
+
+        .product-overlay::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: inherit;
+            filter: blur(8px);
+            z-index: -1;
+            opacity: 0.7;
+        }
+
+        .product-title {
+            font-family: 'Helvetica', Arial, sans-serif;
+            font-size: 1.2em;
+            font-weight: normal;
+            color: white;
+            margin-bottom: 5px;
+        }
+        
+        /* Extension to create infinite vertical black background */
+        .infinite-background {
+            position: fixed;
+            width: 80%;
+            max-width: 1200px;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: black;
+            z-index: 0;
+            border-left: 1px solid rgba(255, 255, 255, 0.05);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            pointer-events: none;
+        }
+        
+        /* Make sure navigation bar stays on top */
+        .main-nav {
+            z-index: 2000;
+        }
+        
+        /* Inverted mode adjustments */
+        .inverted .apparel-grid {
+            background-color: white;
+            border-color: rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+        }
+        
+        .inverted .grid-item {
+            background: rgba(0, 0, 0, 0.05);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        .inverted .grid-item:hover {
+            transform: translateY(-5px) scale(1.03);
+            background: rgba(0, 0, 0, 0.1);
+            border-color: rgba(0, 0, 0, 0.2);
+            box-shadow: 0 0 15px rgba(30, 0, 50, 0.7), 0 0 30px rgba(30, 0, 50, 0.5);
+            animation: invertedItemGlow 2s infinite;
+            z-index: 10; /* Make sure glowing items appear above others */
+        }
+        
+        @keyframes invertedItemGlow {
+            0% { box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 0, 0, 0.6); }
+            100% { box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); }
+        }
+        
+        .inverted .infinite-background {
+            background-color: white;
+            border-color: rgba(0, 0, 0, 0.05);
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            font-size: 0.8em;
+            color: rgba(255, 255, 255, 0.8);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 2;
+        }
+        
+        .footer p {
+            margin-bottom: 10px;
+        }
+        
+        .footer a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer a:hover {
+            color: white;
+        }
+
+        /* Discount banner styles */
+        .discount-banner {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #00FF00;
+            color: black;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            z-index: 2001;
+            text-align: center;
+            animation: pulseGlow 2s infinite;
+            display: none;
+        }
+        
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 5px #00FF00; }
+            50% { box-shadow: 0 0 15px #00FF00, 0 0 30px #00FF00; }
+            100% { box-shadow: 0 0 5px #00FF00; }
+        }
+
+        /* Get Discount Button Styles - Using global style instead of custom */
+        .discount-button {
+            position: fixed;
+            top: 50%;
+            left: 30px;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+            color: var(--text-color);
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            text-decoration: none;
+            z-index: 900;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            animation: buttonGlow 2s infinite;
+        }
+
+        .discount-button:hover {
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--grid-glow);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.8), 0 0 30px rgba(0, 255, 0, 0.6);
+            transform: translateY(-3px);
+        }
+
+        @keyframes buttonGlow {
+            0% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(0, 255, 0, 0.8), 0 0 30px rgba(0, 255, 0, 0.6); }
+            100% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.3); }
+        }
+    </style>
+</head>
+<body>
+    <button class="invert-button">INVERT</button>
+    <div id="localTimeIndicator">
+        <span id="locationName">Loading...</span>
+        <span id="localTime">--:--:--</span>
+    </div>
+    
+    <div class="background-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+    
+    <div id="mediaPlayerContainer">
+        <div class="controls">
+            <button id="playPauseBtn"><span>&#9658;</span></button>
+        </div>
+        <div class="track-info">
+            <div class="track-name">Yükleniyor...</div>
+            <div class="player-wrapper">
+                <iframe id="youtubePlayer" width="100%" height="80" src="https://www.youtube.com/embed/videoseries?list=PLPqNPeVcnMzP-F5HUBMrQiYyjq188fGBi&enablejsapi=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                <div class="player-controls">
+                    <button id="prevBtn">⏮</button>
+                    <div class="progress-container" id="progressContainer">
+                        <div class="progress-bar" id="progressBar"></div>
+                        <div class="progress-time" id="progressTime">0:00 / 0:00</div>
+                    </div>
+                    <button id="nextBtn">⏭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <span id="mousePositionIndicator">
+        <span id="xPosition">X: 0</span>
+        <span id="yPosition">Y: 0</span>
+    </span>
+    
+    <nav class="main-nav">
+        <div class="left-menu-container">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link">MENU</a>
+                    <div class="dropdown">
+                        <ul>
+                            <li><a href="../../pages/about.html">About</a></li>
+                            <li><a href="../../pages/contact.html">Contact</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link active">SHOP</a>
+                    <div class="dropdown">
+                        <ul>
+                            <li><a href="../../pages/shop/apparel.html">Apparel</a></li>
+                            <li><a href="../../pages/shop/accessories.html">Accessories</a></li>
+                            <li><a href="../../pages/shop/homegoods.html">Home goods</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">PROJECTS</a>
+                    <div class="dropdown">
+                        <ul>
+                            <li><a href="../../pages/projects.html">All Projects</a></li>
+                            <li><a href="../../pages/projects/current.html">Current</a></li>
+                            <li><a href="../../pages/projects/past.html">Past</a></li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="logo">
+            <a href="../../index.html">
+                <img src="../../images/KrakerLogo.png" alt="Kraker Logo">
+            </a>
+        </div>
+        
+        <div class="right-menu-container">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="../../pages/login.html" class="nav-link">LOGIN</a>
+                    <div class="dropdown">
+                        <ul>
+                            <li><a href="../../pages/login/email.html">Email Login</a></li>
+                            <li><a href="../../pages/login/social.html">Social Login</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a href="../../pages/Master.html" class="nav-link">REGISTER</a>
+                </li>
+                <li class="nav-item">
+                    <a href="../../pages/Master.html" class="nav-link">CART</a>
+                    <div class="dropdown">
+                        <ul>
+                            <li><a href="../../pages/Master.html">Items</a></li>
+                            <li><a href="../../pages/Master.html">Checkout</a></li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div id="gridContainer" class="grid-container"></div>
+    
+    <!-- Active discount banner -->
+    <div class="discount-banner" id="discountBanner">20% DISCOUNT APPLIED TO ALL ITEMS</div>
+
+    <!-- Get Discount button -->
+    <button id="getDiscountBtn" class="discount-button">GET DISCOUNT</button>
+    
+    <div class="infinite-background"></div>
+    
+    <div class="content-area">
+        <div class="apparel-grid" id="apparelGrid">
+            <!-- Grid items will be loaded dynamically -->
+        </div>
+    </div>
+    
+    <script src="../../scripts/grid.js"></script>
+    <script src="../../scripts/direction-hover.js"></script>
+    
+    <script>
+        // Function to initialize the apparel grid
+        function initApparelGrid() {
+            const apparelGrid = document.getElementById('apparelGrid');
+            
+            // Create Intersection Observer for lazy loading
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.classList.add('loaded');
+                        observer.unobserve(img);
+                    }
+                });
+            }, {
+                rootMargin: '50px 0px',
+                threshold: 0.1
+            });
+            
+            // Check for active discount
+            const discountValue = localStorage.getItem('shopDiscount');
+            const discountExpiry = localStorage.getItem('shopDiscountExpiry');
+            let hasActiveDiscount = false;
+            
+            if (discountValue && discountExpiry) {
+                const now = Date.now();
+                if (now < parseInt(discountExpiry)) {
+                    hasActiveDiscount = true;
+                    // Show discount banner
+                    const discountBanner = document.getElementById('discountBanner');
+                    if (discountBanner) {
+                        discountBanner.style.display = 'block';
+                    }
+                    // Hide get discount button
+                    const getDiscountBtn = document.getElementById('getDiscountBtn');
+                    if (getDiscountBtn) {
+                        getDiscountBtn.style.display = 'none';
+                    }
+                } else {
+                    // Discount has expired
+                    localStorage.removeItem('shopDiscount');
+                    localStorage.removeItem('shopDiscountExpiry');
+                }
+            }
+            
+            // Function to load images from the directory
+            async function loadImages() {
+                try {
+                    console.log('Loading images...');
+                    // Fetch the list of images from the server
+                    const response = await fetch('../../images/apparel/list.json');
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const images = await response.json();
+                    console.log('Loaded images:', images);
+                    
+                    if (!images || images.length === 0) {
+                        console.log('No images found, using placeholders');
+                        showPlaceholders(hasActiveDiscount);
+                        return;
+                    }
+                    
+                    // Sort images by their numeric names
+                    const sortedImages = images.sort((a, b) => {
+                        const numA = parseInt(a.replace(/\D/g, ''));
+                        const numB = parseInt(b.replace(/\D/g, ''));
+                        return numA - numB;
+                    });
+                    
+                    console.log('Sorted images:', sortedImages);
+                    
+                    // Clear existing grid items
+                    apparelGrid.innerHTML = '';
+                    
+                    // Create grid items for each image
+                    sortedImages.forEach((imageName, index) => {
+                        const gridItem = document.createElement('div');
+                        gridItem.className = 'grid-item';
+                        
+                        const img = document.createElement('img');
+                        img.dataset.src = `../../images/apparel/${imageName}`;
+                        img.alt = `Apparel Item ${index + 1}`;
+                        
+                        // Add error handling for image loading
+                        img.onerror = function() {
+                            console.error(`Failed to load image: ${imageName}`);
+                            this.src = `../../images/placeholder${(index % 9) + 1}.jpg`;
+                        };
+
+                        // Create product info section
+                        const productInfo = document.createElement('div');
+                        productInfo.className = 'product-info';
+                        
+                        const price = document.createElement('div');
+                        price.className = 'product-price';
+                        
+                        // Base price for this example
+                        const basePrice = 50;
+                        
+                        if (hasActiveDiscount) {
+                            // Calculate discounted price
+                            const discountedPrice = basePrice * (1 - parseInt(discountValue) / 100);
+                            
+                            const originalPrice = document.createElement('span');
+                            originalPrice.className = 'original-price';
+                            originalPrice.textContent = `$${basePrice}`;
+                            
+                            const discountPrice = document.createElement('span');
+                            discountPrice.className = 'discount-price';
+                            discountPrice.textContent = `$${discountedPrice.toFixed(2)}`;
+                            
+                            price.appendChild(originalPrice);
+                            price.appendChild(discountPrice);
+                        } else {
+                            price.textContent = `$${basePrice}`;
+                        }
+                        
+                        const category = document.createElement('div');
+                        category.className = 'product-category';
+                        category.textContent = 'Dekadans';
+                        
+                        const description = document.createElement('div');
+                        description.className = 'product-description';
+                        description.textContent = 'Limited edition graphic t-shirt with original artwork';
+                        
+                        productInfo.appendChild(price);
+                        productInfo.appendChild(category);
+                        productInfo.appendChild(description);
+                        
+                        gridItem.appendChild(img);
+                        gridItem.appendChild(productInfo);
+                        apparelGrid.appendChild(gridItem);
+                        
+                        // Observe the image for lazy loading
+                        observer.observe(img);
+                    });
+                    
+                } catch (error) {
+                    console.error('Error loading images:', error);
+                    showPlaceholders(hasActiveDiscount);
+                }
+            }
+            
+            // Function to show placeholder images
+            function showPlaceholders(hasDiscount) {
+                apparelGrid.innerHTML = '';
+                for (let i = 0; i < 9; i++) {
+                    const gridItem = document.createElement('div');
+                    gridItem.className = 'grid-item';
+                    
+                    const img = document.createElement('img');
+                    img.dataset.src = `../../images/placeholder${(i % 9) + 1}.jpg`;
+                    img.alt = `Placeholder ${i + 1}`;
+                    
+                    // Create product info with proper pricing
+                    const productInfo = document.createElement('div');
+                    productInfo.className = 'product-info';
+                    
+                    const price = document.createElement('div');
+                    price.className = 'product-price';
+                    
+                    // Base price
+                    const basePrice = 50;
+                    
+                    if (hasDiscount) {
+                        // Calculate discounted price
+                        const discountedPrice = basePrice * (1 - parseInt(discountValue) / 100);
+                        
+                        const originalPrice = document.createElement('span');
+                        originalPrice.className = 'original-price';
+                        originalPrice.textContent = `$${basePrice}`;
+                        
+                        const discountPrice = document.createElement('span');
+                        discountPrice.className = 'discount-price';
+                        discountPrice.textContent = `$${discountedPrice.toFixed(2)}`;
+                        
+                        price.appendChild(originalPrice);
+                        price.appendChild(discountPrice);
+                    } else {
+                        price.textContent = `$${basePrice}`;
+                    }
+                    
+                    const category = document.createElement('div');
+                    category.className = 'product-category';
+                    category.textContent = 'Dekadans';
+                    
+                    const description = document.createElement('div');
+                    description.className = 'product-description';
+                    description.textContent = 'Limited edition graphic t-shirt with original artwork';
+                    
+                    productInfo.appendChild(price);
+                    productInfo.appendChild(category);
+                    productInfo.appendChild(description);
+                    
+                    gridItem.appendChild(img);
+                    gridItem.appendChild(productInfo);
+                    apparelGrid.appendChild(gridItem);
+                    
+                    observer.observe(img);
+                }
+            }
+            
+            // Call the load function
+            loadImages();
+            
+            // Add Get Discount button event listener
+            const getDiscountBtn = document.getElementById('getDiscountBtn');
+            if (getDiscountBtn) {
+                getDiscountBtn.addEventListener('click', function() {
+                    window.location.href = '../puzzle.html';
+                });
+            }
+        }
+        
+        // Call init function when page loads
+        window.addEventListener('DOMContentLoaded', initApparelGrid);
+        
+        // Media Player Functions
+        let player;
+        let isPlaying = false;
+        let videoDuration = 0;
+        let currentPlaylistIndex = 0;
+        
+        // YouTube API initialization
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('youtubePlayer', {
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+        
+        function onPlayerReady(event) {
+            console.log('YouTube player ready');
+            videoDuration = player.getDuration();
+            try {
+                currentPlaylistIndex = player.getPlaylistIndex();
+                const playlistLength = player.getPlaylist().length;
+                console.log(`Playlist loaded: ${playlistLength} videos, current index: ${currentPlaylistIndex}`);
+                setTimeout(updateCurrentSongInfo, 300);
+                updateProgress();
+            } catch (e) {
+                console.log('Playlist info could not be retrieved:', e);
+            }
+            setTimeout(function() {
+                player.playVideo();
+            }, 1000);
+        }
+        
+        function onPlayerStateChange(event) {
+            if (event.data == YT.PlayerState.PLAYING) {
+                isPlaying = true;
+                document.getElementById('playPauseBtn').innerHTML = '<span>&#10074;&#10074;</span>';
+                updateCurrentSongInfo();
+                updateProgress();
+            } else if (event.data == YT.PlayerState.PAUSED) {
+                isPlaying = false;
+                document.getElementById('playPauseBtn').innerHTML = '<span>&#9658;</span>';
+            } else if (event.data == YT.PlayerState.ENDED) {
+                isPlaying = false;
+                document.getElementById('playPauseBtn').innerHTML = '<span>&#9658;</span>';
+            }
+        }
+        
+        function updateCurrentSongInfo() {
+            try {
+                const videoData = player.getVideoData();
+                if (videoData && videoData.title) {
+                    document.querySelector('.track-name').textContent = videoData.title;
+                } else {
+                    document.querySelector('.track-name').textContent = 'Unknown';
+                }
+            } catch (e) {
+                console.log('Could not update song info:', e);
+                document.querySelector('.track-name').textContent = 'Error loading track info';
+            }
+        }
+        
+        function updateProgress() {
+            if (isPlaying) {
+                try {
+                    const currentTime = player.getCurrentTime();
+                    const duration = player.getDuration();
+                    
+                    const progressPercent = (currentTime / duration) * 100;
+                    document.getElementById('progressBar').style.width = progressPercent + '%';
+                    
+                    // Format time as mm:ss
+                    const formatTime = (time) => {
+                        const minutes = Math.floor(time / 60);
+                        const seconds = Math.floor(time % 60);
+                        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                    };
+                    
+                    document.getElementById('progressTime').textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`;
+                } catch (e) {
+                    console.log('Could not update progress:', e);
+                }
+                
+                // Schedule next update
+                requestAnimationFrame(updateProgress);
+            }
+        }
+        
+        // --- Media Player Controls ---
+        document.getElementById('playPauseBtn').addEventListener('click', function() {
+            if (isPlaying) {
+                player.pauseVideo();
+            } else {
+                player.playVideo();
+            }
+        });
+        
+        document.getElementById('prevBtn').addEventListener('click', function() {
+            player.previousVideo();
+            setTimeout(updateCurrentSongInfo, 300);
+        });
+        
+        document.getElementById('nextBtn').addEventListener('click', function() {
+            player.nextVideo();
+            setTimeout(updateCurrentSongInfo, 300);
+        });
+        
+        document.getElementById('progressContainer').addEventListener('click', function(e) {
+            const progressContainer = document.getElementById('progressContainer');
+            const bounds = progressContainer.getBoundingClientRect();
+            const x = e.clientX - bounds.left;
+            const containerWidth = bounds.width;
+            
+            const percentage = x / containerWidth;
+            const videoDuration = player.getDuration();
+            const seekTime = videoDuration * percentage;
+            
+            player.seekTo(seekTime, true);
+        });
+        
+        // Handle mouse position indicator
+        document.addEventListener('mousemove', function(e) {
+            document.getElementById('xPosition').textContent = `X: ${e.clientX}`;
+            document.getElementById('yPosition').textContent = `Y: ${e.clientY}`;
+        });
+        
+        // Invert mode toggle
+        document.querySelector('.invert-button').addEventListener('click', function() {
+            document.body.classList.toggle('inverted');
+        });
+        
+        // Update local time
+        function updateLocalTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.getElementById('localTime').textContent = timeString;
+        }
+        
+        // Get location for time display
+        async function getLocation() {
+            try {
+                const response = await fetch('https://ipapi.co/json/');
+                const data = await response.json();
+                document.getElementById('locationName').textContent = data.city || 'Local';
+            } catch (error) {
+                console.error('Error getting location:', error);
+                document.getElementById('locationName').textContent = 'Local';
+            }
+        }
+        
+        // Initialize time updates
+        setInterval(updateLocalTime, 1000);
+        updateLocalTime();
+        getLocation();
+        
+        // Dropdown menu behavior
+        document.addEventListener('DOMContentLoaded', function() {
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            navItems.forEach(item => {
+                const dropdown = item.querySelector('.dropdown');
+                if (dropdown) {
+                    item.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        dropdown.classList.toggle('active');
+                        
+                        // Close other dropdowns
+                        navItems.forEach(otherItem => {
+                            if (otherItem !== item) {
+                                otherItem.querySelector('.dropdown')?.classList.remove('active');
+                            }
+                        });
+                    });
+                }
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.nav-item')) {
+                    document.querySelectorAll('.dropdown').forEach(dropdown => {
+                        dropdown.classList.remove('active');
+                    });
+                }
+            });
+
+            // Handle dropdown item clicks
+            document.querySelectorAll('.dropdown a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault(); // Prevent default link behavior
+                    const href = this.getAttribute('href');
+                    if (href && href !== '#') {
+                        window.location.href = href;
+                    }
+                });
+            });
+
+            // Handle direct nav-link clicks (for links without dropdowns)
+            document.querySelectorAll('.nav-link[href]').forEach(link => {
+                if (!link.closest('.nav-item').querySelector('.dropdown')) {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const href = this.getAttribute('href');
+                        if (href && href !== '#') {
+                            window.location.href = href;
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

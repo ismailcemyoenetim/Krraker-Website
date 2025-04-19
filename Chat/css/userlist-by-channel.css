@@ -1,0 +1,39 @@
+/* Styling for grouping users by channels */
+
+/* Hide the user profile in the left sidebar */
+.irc-user-profile {
+    display: none !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    visibility: hidden !important;
+}
+
+/* Channel headers in the user list */
+.channel-header {
+    padding: 5px !important;
+    background-color: var(--terminal-bg) !important;
+    color: var(--terminal-amber) !important;
+    font-weight: bold !important;
+    border-bottom: 1px solid var(--terminal-amber-dim) !important;
+    margin-top: 10px !important;
+    margin-bottom: 3px !important;
+    list-style: none !important;
+    font-size: 14px !important;
+}
+
+/* Add more space for the channel list */
+.irc-roomlist {
+    height: auto !important;
+    max-height: 30% !important;
+}
+
+/* Make user list the main element */
+.irc-userlist {
+    flex: 1 !important;
+}
+
+/* Style for active users in a channel */
+.irc-user.current-channel {
+    font-weight: bold !important;
+    color: #00ff00 !important;
+} 

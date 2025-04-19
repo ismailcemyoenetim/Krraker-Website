@@ -42,12 +42,16 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
             transform-origin: top left;
             animation: expandBox 0.55s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-sizing: border-box;
         }
         
         .contact-content-inner {
             opacity: 0;
             animation: fadeIn 0.5s ease forwards;
             animation-delay: 0.3s;
+            padding: 0;
+            box-sizing: border-box;
         }
         
         @keyframes fadeIn {
@@ -79,13 +83,13 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
-            margin-top: 30px;
-            padding-top: 30px;
+            margin: 30px auto 0 auto;
+            padding: 30px 0 0 0;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             animation: fadeIn 0.2s ease-out 0.3s forwards;
             opacity: 0;
-            max-width: 600px;
-            margin-left: 0;
+            width: 100%;
+            box-sizing: border-box;
         }
         
         .form-group {
@@ -93,6 +97,7 @@
             flex-direction: column;
             margin-bottom: 15px;
             width: 100%;
+            box-sizing: border-box;
         }
         
         .form-group label {
@@ -111,6 +116,7 @@
             resize: vertical;
             border-radius: 5px;
             width: 100%;
+            box-sizing: border-box;
         }
         
         .form-group input:focus,
@@ -183,13 +189,35 @@
         .contact-info-item a {
             color: rgba(255, 255, 255, 0.7);
             text-decoration: none;
-            transition: color 0.3s ease;
+            transition: all 0.3s ease;
             letter-spacing: 0px;
             line-height: 1.4;
+            position: relative;
+        }
+        
+        .contact-info-item h3 + a {
+            color: #1A77F2;
+            font-weight: normal;
+        }
+        
+        .contact-info-item a::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -2px;
+            width: 0;
+            height: 2px;
+            background-color: #1A77F2;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 5px rgba(26, 119, 242, 0.5);
         }
         
         .contact-info-item a:hover {
-            color: var(--grid-glow);
+            text-shadow: 0 0 8px rgba(26, 119, 242, 0.5);
+        }
+        
+        .contact-info-item a:hover::after {
+            width: 100%;
         }
         
         .contact-wrapper {
@@ -211,18 +239,34 @@
         }
         
         .footer a {
-            color: rgba(255, 255, 255, 0.8);
+            color: #1A77F2;
             text-decoration: none;
             transition: color 0.3s ease;
+            font-size: 0.8rem;
         }
         
         .footer a:hover {
-            color: white;
+            text-shadow: 0 0 8px rgba(26, 119, 242, 0.5);
         }
     </style>
 </head>
 <body>
-    <button class="invert-button">INVERT</button>
+    <button class="invert-button">
+        <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
     <div id="localTimeIndicator">
         <span id="locationName">Loading...</span>
         <span id="localTime">--:--:--</span>
@@ -292,7 +336,7 @@
         <div class="right-menu-container">
             <ul class="nav-menu">
                 <li class="nav-item">
-                    <a href="#" class="nav-link">LOGIN</a>
+                    <a href="../pages/login.html" class="nav-link">LOGIN</a>
                     <div class="dropdown">
                         <ul>
                             <li><a href="../pages/login/email.html">Email Login</a></li>
@@ -301,7 +345,7 @@
                     </div>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">REGISTER</a>
+                    <a href="../pages/register.html" class="nav-link">REGISTER</a>
                 </li>
                 <li class="nav-item">
                     <a href="#" class="nav-link">CART</a>
@@ -323,9 +367,8 @@
         <div class="contact-wrapper">
             <div class="contact-content">
                 <div class="contact-content-inner">
-                    <h1>CONTACT US</h1>
-                    <p>We'd love to hear from you. Whether you have a question about our services, products, or just want to say hello, please don't hesitate to reach out to us.</p>
-                    
+                    <h1>CONTACT</h1>
+                    <p>If something resonates — or even just sparks a thought — you're always welcome to say hi.</p>
                     <form class="contact-form">
                         <div class="form-group">
                             <label for="name">NAME</label>
@@ -353,7 +396,7 @@
                     <div class="contact-info">
                         <div class="contact-info-item">
                             <h3>ADDRESS</h3>
-                            <p><i class="fas fa-map-marker-alt"></i> Esentepe Mah. Talatpaşa Cad. No:5/1, Levent - Şişli / İstanbul</p>
+                            <p><i class="fas fa-map-marker-alt"></i> Osmanağa Mah. Yoğurtçu parkı cad. Moda/İstanbul</p>
                         </div>
                         
                         <div class="contact-info-item">
@@ -363,19 +406,12 @@
                         
                         <div class="contact-info-item">
                             <h3>PHONE</h3>
-                            <p>+1 (555) 123-4567</p>
-                            <p>+1 (555) 987-6543</p>
-                        </div>
-                        
-                        <div class="contact-info-item">
-                            <h3>HOURS</h3>
-                            <p>Monday - Friday: 9am - 6pm</p>
-                            <p>Weekend: Closed</p>
+                            <p>On demand</p>
                         </div>
                     </div>
 
                     <div class="footer">
-                        <p>© 2025 • Krraker</p>
+                        <p>2025 • Krraker©</p>
                         <a href="termsandconditions.html">Terms and Conditions</a>
                     </div>
                 </div>
@@ -750,5 +786,8 @@
         // Sayfa yüklendiğinde yerel saat bilgisini başlat
         updateLocalTime();
     </script>
+    
+    <!-- Auth UI script for navigation updates -->
+    <script type="module" src="../scripts/auth-ui.js"></script>
 </body>
 </html> 

@@ -10,12 +10,35 @@
     <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body>
-    <a href="canvas.html" class="lab-button">🧪 Krraker Lab</a>
-    <button class="invert-button">INVERT</button>
-    <div id="localTimeIndicator">
-        <span id="locationName">Loading...</span>
-        <span id="localTime">--:--:--</span>
+    <a href="canvas.html" class="lab-button" style="position: fixed; left: 10px; top: 50%; transform: translateY(-50%); z-index: 1000; padding: 10px; background-color: rgba(0, 0, 0, 0.2); backdrop-filter: blur(10px); border-radius: 7px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);"><img src="images/Labicon.png" alt="Lab" style="width: 22px; height: auto;"></a>
+    <a href="chat.html" class="terminal-button" id="terminal-button">&lt;/&gt;</a>
+    <div class="logo">
+        <a href="index.html"><img src="assets/logo.svg" alt="Logo"></a>
     </div>
+    
+    <!-- Local Time Indicator -->
+    <div id="localTimeIndicator">
+        <span id="locationName">IST</span>
+        <span id="localTime">00:00:00</span>
+    </div>
+    
+    <!-- Color Invert Button -->
+    <button class="invert-button">
+        <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
     
     <div id="mediaPlayerContainer">
         <div class="controls">
@@ -42,11 +65,6 @@
         <ul id="playlistItems" class="playlist-items"></ul>
     </div>
     
-    <span id="mousePositionIndicator">
-        <span id="xPosition">X: 0</span>
-        <span id="yPosition">Y: 0</span>
-    </span>
-    
     <nav class="main-nav">
         <div class="left-menu-container">
             <ul class="nav-menu">
@@ -70,10 +88,10 @@
                     </div>
                 </li>
                 <li class="nav-item">
-                    <a href="pages/puzzle.html" class="nav-link">PROJECTS</a>
+                    <a href="pages/projects.html" class="nav-link">PROJECTS</a>
                     <div class="dropdown">
                         <ul>
-                            <li><a href="pages/puzzle.html">All Projects</a></li>
+                            <li><a href="pages/projects.html">All Projects</a></li>
                             <li><a href="pages/projects/current.html">Current</a></li>
                             <li><a href="pages/projects/past.html">Past</a></li>
                         </ul>
@@ -91,7 +109,7 @@
         <div class="right-menu-container">
             <ul class="nav-menu">
                 <li class="nav-item">
-                    <a href="#" class="nav-link">LOGIN</a>
+                    <a href="pages/login.html" class="nav-link">LOGIN</a>
                     <div class="dropdown">
                         <ul>
                             <li><a href="pages/login/email.html">Email Login</a></li>
@@ -100,7 +118,7 @@
                     </div>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">REGISTER</a>
+                    <a href="pages/register.html" class="nav-link">REGISTER</a>
                 </li>
                 <li class="nav-item">
                     <a href="#" class="nav-link">CART</a>
@@ -119,6 +137,9 @@
     
     <script src="scripts/grid.js"></script>
     <script src="scripts/direction-hover.js"></script>
+    
+    <!-- Auth UI script for navigation updates -->
+    <script type="module" src="scripts/auth-ui.js"></script>
     
     <script>
         // Media Player Functions - YouTube özel medya oynatıcı kontrolü
@@ -460,29 +481,13 @@
              window.highlightCurrentTrack = highlightCurrentTrack; 
         });
         
-        // Mouse Position Tracking
-        document.addEventListener('mousemove', function(event) {
-            const xPositionElem = document.getElementById('xPosition');
-            const yPositionElem = document.getElementById('yPosition');
-            
-            // Update position text
-            xPositionElem.textContent = `X: ${event.clientX}`;
-            yPositionElem.textContent = `Y: ${event.clientY}`;
-        });
-        
         // Renk tersine çevirme fonksiyonu
         document.querySelector('.invert-button').addEventListener('click', function() {
             document.body.classList.toggle('inverted');
-            const isInverted = document.body.classList.contains('inverted');
-            localStorage.setItem('colorInverted', isInverted);
-        });
-        
-        // Sayfa yüklendiğinde kullanıcının önceki tercihini kontrol et
-        window.addEventListener('load', function() {
-            const isInverted = localStorage.getItem('colorInverted') === 'true';
-            if (isInverted) {
-                document.body.classList.add('inverted');
-            }
+            document.body.classList.add('theme-switching');
+            setTimeout(() => {
+                document.body.classList.remove('theme-switching');
+            }, 500);
         });
         
         // Yerel saat ve konum fonksiyonları

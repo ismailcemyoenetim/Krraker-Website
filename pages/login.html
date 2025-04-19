@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Kraker</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        
+        // Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyD55KdXc0PcnhIh9WgdcByS0-EVvk4pxxI",
+          authDomain: "email-kraker.firebaseapp.com",
+          projectId: "email-kraker",
+          storageBucket: "email-kraker.firebasestorage.app",
+          messagingSenderId: "887189683401",
+          appId: "1:887189683401:web:15b6a238b8d24319ece118",
+          measurementId: "G-TE7M225KP7"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        
+        // Login functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.querySelector('.login-form');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const loginBtn = document.querySelector('.login-btn');
+            const errorMessage = document.createElement('div');
+            const forgotPasswordLink = document.getElementById('forgot-password');
+            const resetPasswordModal = document.getElementById('reset-password-modal');
+            const resetPasswordForm = document.getElementById('reset-password-form');
+            const resetPasswordEmail = document.getElementById('reset-email');
+            const resetPasswordClose = document.getElementById('reset-modal-close');
+            const successMessage = document.createElement('div');
+            
+            errorMessage.className = 'error-message';
+            errorMessage.style.color = '#ff4d4d';
+            errorMessage.style.marginTop = '10px';
+            errorMessage.style.textAlign = 'center';
+            errorMessage.style.display = 'none';
+            
+            successMessage.className = 'success-message';
+            successMessage.style.color = '#4CAF50';
+            successMessage.style.marginTop = '10px';
+            successMessage.style.textAlign = 'center';
+            successMessage.style.display = 'none';
+            
+            loginForm.querySelector('.login-content').appendChild(errorMessage);
+            loginForm.querySelector('.login-content').appendChild(successMessage);
+            
+            // Check for redirect parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('registered') && urlParams.has('verification')) {
+                successMessage.textContent = 'Account created successfully! Please check your email to verify your account before logging in.';
+                successMessage.style.display = 'block';
+                
+                // Auto-hide success message after 5 seconds
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 5000);
+            }
+            
+            // Show password reset modal
+            forgotPasswordLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                resetPasswordModal.style.display = 'flex';
+                // Pre-fill with the email from login form if available
+                if (emailInput.value) {
+                    resetPasswordEmail.value = emailInput.value;
+                }
+            });
+            
+            // Close password reset modal
+            resetPasswordClose.addEventListener('click', function() {
+                resetPasswordModal.style.display = 'none';
+            });
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', function(e) {
+                if (e.target === resetPasswordModal) {
+                    resetPasswordModal.style.display = 'none';
+                }
+            });
+            
+            // Handle password reset form submission
+            resetPasswordForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const email = resetPasswordEmail.value.trim();
+                
+                if (!email) {
+                    alert('Please enter your email address');
+                    return;
+                }
+                
+                try {
+                    await sendPasswordResetEmail(auth, email);
+                    resetPasswordModal.style.display = 'none';
+                    alert('Password reset email sent. Please check your inbox and spam folder.');
+                } catch (error) {
+                    console.error('Password reset error:', error);
+                    alert(getErrorMessage(error.code) || 'Failed to send reset email. Please try again.');
+                }
+            });
+            
+            loginBtn.addEventListener('click', async function(e) {
+                e.preventDefault();
+                
+                const email = emailInput.value.trim();
+                const password = passwordInput.value.trim();
+                
+                if (!email || !password) {
+                    errorMessage.textContent = 'Please enter both email and password';
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+                
+                loginBtn.disabled = true;
+                loginBtn.textContent = 'SIGNING IN...';
+                
+                try {
+                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                    // Login successful, redirect to homepage or dashboard
+                    window.location.href = '../index.html';
+                } catch (error) {
+                    console.error('Login error:', error);
+                    errorMessage.textContent = getErrorMessage(error.code);
+                    errorMessage.style.display = 'block';
+                    
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'SIGN IN';
+                }
+            });
+            
+            // Helper function to get user-friendly error messages
+            function getErrorMessage(errorCode) {
+                switch(errorCode) {
+                    case 'auth/invalid-email':
+                        return 'Invalid email address format';
+                    case 'auth/user-disabled':
+                        return 'This account has been disabled';
+                    case 'auth/user-not-found':
+                        return 'No account found with this email';
+                    case 'auth/wrong-password':
+                        return 'Invalid email or password';
+                    default:
+                        return 'An error occurred during sign in';
+                }
+            }
+        });
+    </script>
+    <style>
+        @keyframes expandBox {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 0;
+            }
+            30% {
+                width: 200px;
+                height: 50px;
+                opacity: 1;
+            }
+            70% {
+                width: 100%;
+                height: 80%;
+            }
+            100% {
+                width: 100%;
+                height: 100%;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .login-wrapper {
+            padding: 50px 20px 110px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 195px);
+            margin-top: -50px;
+        }
+        
+        .login-form {
+            width: 100%;
+            max-width: 24rem;
+            padding: 2.5rem;
+            color: var(--text-color);
+            background-color: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transform-origin: top center;
+            animation: expandBox 0.55s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
+            transition: border 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .login-form:hover {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(255, 255, 255, 0.05),
+                        0 0 8px var(--grid-glow-outer),
+                        0 0 16px var(--grid-glow-far);
+        }
+        
+        .login-content {
+            opacity: 0;
+            animation: fadeIn 0.5s ease forwards;
+            animation-delay: 0.3s;
+            width: 100%;
+        }
+        
+        .login-form h1 {
+            margin-bottom: 2rem;
+            color: var(--grid-glow);
+            letter-spacing: 0px;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+            opacity: 0;
+            animation: fadeIn 0.2s ease-out forwards;
+        }
+        
+        .form-group:nth-child(2) { animation-delay: 0.35s; }
+        .form-group:nth-child(3) { animation-delay: 0.4s; }
+        .form-group:nth-child(4) { animation-delay: 0.45s; }
+        .form-group:nth-child(5) { animation-delay: 0.5s; }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            color: var(--text-color);
+            font-family: Helvetica, Arial, sans-serif;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--grid-glow);
+            box-shadow: 0 0 8px var(--grid-glow-outer);
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            font-family: Helvetica, Arial, sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .login-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--grid-glow);
+            box-shadow: 0 0 8px var(--grid-glow-outer),
+                        0 0 16px var(--grid-glow-far);
+        }
+        
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.1),
+                transparent
+            );
+            transition: all 0.6s ease;
+        }
+        
+        .login-btn:hover::before {
+            left: 100%;
+        }
+        
+        .register-link {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 0.9rem;
+            opacity: 0;
+            animation: fadeIn 0.2s ease-out forwards;
+            animation-delay: 0.55s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Helvetica, Arial, sans-serif;
+            line-height: 1;
+        }
+        
+        .register-link p {
+            font-weight: bold;
+            margin-bottom: 0.1rem;
+        }
+        
+        .register-link a {
+            color: #1A77F2;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: block;
+            margin-top: 0.1rem;
+            font-weight: bold;
+            font-family: Helvetica, Arial, sans-serif;
+        }
+        
+        .register-link a:hover {
+            text-shadow: 0 0 8px rgba(26, 119, 242, 0.5);
+        }
+        
+        .error-message {
+            margin-top: 10px;
+            padding: 8px;
+            background-color: rgba(255, 77, 77, 0.1);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .success-message {
+            margin-top: 10px;
+            padding: 8px;
+            background-color: rgba(76, 175, 80, 0.1);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        /* Password Reset Modal Styles */
+        .reset-password-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .reset-password-container {
+            width: 90%;
+            max-width: 400px;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 30px;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 22px;
+            color: var(--terminal-amber);
+            cursor: pointer;
+            background: none;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .close-modal:hover {
+            transform: scale(1.2);
+            color: #fff;
+        }
+
+        .reset-password-container h2 {
+            margin-bottom: 20px;
+            color: var(--grid-glow);
+            text-align: center;
+        }
+
+        .reset-password-form .form-group {
+            margin-bottom: 20px;
+            opacity: 1;
+            animation: none;
+        }
+
+        .forgot-password {
+            display: block;
+            text-align: right;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+            color: #1A77F2;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .forgot-password:hover {
+            text-shadow: 0 0 8px rgba(26, 119, 242, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <button class="invert-button">
+        <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+    <div id="localTimeIndicator">
+        <span id="locationName">Loading...</span>
+        <span id="localTime">--:--:--</span>
+    </div>
+    
+    <nav class="main-nav">
+        <div class="left-menu-container">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link">MENU</a>
+                    <div class="dropdown">
+                        <ul>
+                            <li><a href="../pages/about.html">About</a></li>
+                            <li><a href="../pages/contact.html">Contact</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">SHOP</a>
+                    <div class="dropdown">
+                        <ul>
+                            <li><a href="../pages/shop/apparel.html">Apparel</a></li>
+                            <li><a href="../pages/shop/accessories.html">Accessories</a></li>
+                            <li><a href="../pages/shop/homegoods.html">Home goods</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">PROJECTS</a>
+                    <div class="dropdown">
+                        <ul>
+                            <li><a href="../pages/projects/current.html">Current</a></li>
+                            <li><a href="../pages/projects/past.html">Past</a></li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="logo">
+            <a href="../index.html">
+                <img src="../images/KrakerLogo.png" alt="Kraker Logo">
+            </a>
+        </div>
+        
+        <div class="right-menu-container">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="../pages/login.html" class="nav-link active">LOGIN</a>
+                </li>
+                <li class="nav-item">
+                    <a href="../pages/register.html" class="nav-link">REGISTER</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">CART</a>
+                    <div class="dropdown">
+                        <ul>
+                            <li><a href="../pages/cart/items.html">Items</a></li>
+                            <li><a href="../pages/cart/checkout.html">Checkout</a></li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div id="gridContainer" class="grid-container"></div>
+    
+    <div class="content-area">
+        <div class="login-wrapper">
+            <div class="login-form">
+                <div class="login-content">
+                    <h1>LOGIN</h1>
+                    <div class="form-group">
+                        <label for="email">EMAIL</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">PASSWORD</label>
+                        <input type="password" id="password" name="password" required>
+                        <a href="#" id="forgot-password" class="forgot-password">Forgot Password?</a>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="login-btn">SIGN IN</button>
+                    </div>
+                    <div class="register-link">
+                        <p>Don't have an account?</p>
+                        <a href="../pages/register.html">Register</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="reset-password-modal" class="reset-password-modal">
+        <div class="reset-password-container">
+            <button id="reset-modal-close" class="close-modal">&times;</button>
+            <h2>Reset Password</h2>
+            <p>Enter your email address and we'll send you a link to reset your password.</p>
+            <form id="reset-password-form" class="reset-password-form">
+                <div class="form-group">
+                    <label for="reset-email">Email Address</label>
+                    <input type="email" id="reset-email" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="login-btn">SEND RESET LINK</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="../scripts/grid.js"></script>
+    <script src="../scripts/direction-hover.js"></script>
+    <!-- Auth UI script for navigation updates -->
+    <script type="module" src="../scripts/auth-ui.js"></script>
+    <script>
+        // Update time display
+        function updateLocalTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { 
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('localTime').textContent = timeStr;
+            
+            // Update location if not already set
+            if(document.getElementById('locationName').textContent === "Loading...") {
+                document.getElementById('locationName').textContent = "LOCAL";
+            }
+        }
+        
+        // Initialize time display
+        updateLocalTime();
+        setInterval(updateLocalTime, 1000);
+        
+        // Handle invert button
+        document.querySelector('.invert-button').addEventListener('click', function() {
+            // Add rotation animation to button
+            this.classList.add('theme-switching');
+            
+            // Toggle inverted class on body
+            document.body.classList.toggle('inverted');
+            
+            // Remove animation class after transition completes
+            setTimeout(() => {
+                this.classList.remove('theme-switching');
+            }, 500);
+        });
+    </script>
+</body>
+</html> 

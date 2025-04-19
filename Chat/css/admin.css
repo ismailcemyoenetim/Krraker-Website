@@ -1,0 +1,112 @@
+/* admin.css - Admin panel styles */
+
+.admin-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    overflow: hidden;
+}
+
+.admin-crt-effect {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.15),
+        rgba(0, 0, 0, 0.15) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+    pointer-events: none;
+    z-index: 2001;
+}
+
+.admin-access-panel {
+    width: 400px;
+    background-color: var(--terminal-bg);
+    border: 1px solid var(--terminal-amber);
+    padding: 20px;
+    position: relative;
+    z-index: 2002;
+    box-shadow: 0 0 20px var(--terminal-amber-dim);
+    border-radius: 8px;
+}
+
+.admin-access-panel h2 {
+    text-align: center;
+    margin-top: 0;
+    color: var(--terminal-amber);
+    font-size: 20px;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px var(--terminal-amber);
+}
+
+.admin-field {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.admin-field label {
+    width: 100px;
+    color: var(--terminal-amber);
+    font-weight: bold;
+}
+
+.admin-field input {
+    flex: 1;
+    background-color: var(--terminal-bg);
+    border: 1px solid var(--terminal-amber);
+    color: var(--terminal-amber);
+    padding: 8px;
+    font-family: 'PxPlus IBM VGA8', 'Courier New', monospace;
+    font-size: 14px;
+    border-radius: 4px;
+}
+
+.admin-login-form button {
+    display: block;
+    width: 100%;
+    background-color: var(--terminal-bg);
+    border: 1px solid var(--terminal-amber);
+    color: var(--terminal-amber);
+    padding: 8px;
+    margin-top: 20px;
+    font-family: 'PxPlus IBM VGA8', 'Courier New', monospace;
+    font-size: 16px;
+    cursor: pointer;
+    text-shadow: var(--text-shadow);
+    border-radius: 4px;
+}
+
+.admin-login-form button:hover {
+    background-color: var(--terminal-amber-dim);
+}
+
+.admin-message {
+    margin-top: 15px;
+    text-align: center;
+    color: #FF3333;
+    min-height: 20px;
+}
+
+/* Matrix Animation Container */
+.matrix-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1999;
+    overflow: hidden;
+} 

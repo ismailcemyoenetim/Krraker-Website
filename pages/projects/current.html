@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Current Projects | Kraker</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        
+        // Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyD55KdXc0PcnhIh9WgdcByS0-EVvk4pxxI",
+          authDomain: "email-kraker.firebaseapp.com",
+          projectId: "email-kraker",
+          storageBucket: "email-kraker.firebasestorage.app",
+          messagingSenderId: "887189683401",
+          appId: "1:887189683401:web:15b6a238b8d24319ece118",
+          measurementId: "G-TE7M225KP7"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+    </script>
+</head>
+<body>
+    <button class="invert-button">
+        <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+    <div id="localTimeIndicator">
+        <span id="locationName">Loading...</span>
+        <span id="localTime">--:--:--</span>
+    </div>
+    
+    <nav class="main-nav">
+        <div class="left-menu-container">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link">MENU</a>
+                    <div class="dropdown">
+                        <ul>
+                            <li><a href="../../pages/about.html">About</a></li>
+                            <li><a href="../../pages/contact.html">Contact</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">SHOP</a>
+                    <div class="dropdown">
+                        <ul>
+                            <li><a href="../../pages/shop/apparel.html">Apparel</a></li>
+                            <li><a href="../../pages/shop/accessories.html">Accessories</a></li>
+                            <li><a href="../../pages/shop/homegoods.html">Home goods</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a href="../../pages/projects.html" class="nav-link active">PROJECTS</a>
+                    <div class="dropdown">
+                        <ul>
+                            <li><a href="../../pages/projects.html">All Projects</a></li>
+                            <li><a href="../../pages/projects/current.html">Current</a></li>
+                            <li><a href="../../pages/projects/past.html">Past</a></li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="logo">
+            <a href="../../index.html">
+                <img src="../../images/KrakerLogo.png" alt="Kraker Logo">
+            </a>
+        </div>
+        
+        <div class="right-menu-container">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="../../pages/login.html" class="nav-link">LOGIN</a>
+                    <div class="dropdown">
+                        <ul>
+                            <li><a href="../../pages/login/email.html">Email Login</a></li>
+                            <li><a href="../../pages/login/social.html">Social Login</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a href="../../pages/register.html" class="nav-link">REGISTER</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">CART</a>
+                    <div class="dropdown">
+                        <ul>
+                            <li><a href="../../pages/cart/items.html">Items</a></li>
+                            <li><a href="../../pages/cart/checkout.html">Checkout</a></li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div id="gridContainer" class="grid-container"></div>
+    
+    <div class="content-area">
+        <div class="page-container">
+            <h1>Current Projects</h1>
+            <p>Current projects page content coming soon...</p>
+        </div>
+    </div>
+    
+    <script src="../../scripts/grid.js"></script>
+    <script src="../../scripts/direction-hover.js"></script>
+    
+    <!-- Auth UI script for navigation updates -->
+    <script type="module" src="../../scripts/auth-ui.js"></script>
+    
+    <script>
+        // Update time display
+        function updateLocalTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { 
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('localTime').textContent = timeStr;
+            
+            // Update location if not already set
+            if(document.getElementById('locationName').textContent === "Loading...") {
+                document.getElementById('locationName').textContent = "LOCAL";
+            }
+        }
+        
+        // Initialize time display
+        updateLocalTime();
+        setInterval(updateLocalTime, 1000);
+        
+        // Handle invert button
+        document.querySelector('.invert-button').addEventListener('click', function() {
+            // Add rotation animation to button
+            this.classList.add('theme-switching');
+            
+            // Toggle inverted class on body
+            document.body.classList.toggle('inverted');
+            
+            // Remove animation class after transition completes
+            setTimeout(() => {
+                this.classList.remove('theme-switching');
+            }, 500);
+        });
+    </script>
+</body>
+</html> 
