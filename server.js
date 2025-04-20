@@ -40,6 +40,11 @@ app.get('/canvas', (req, res) => {
     res.sendFile(path.join(__dirname, 'canvas.html'));
 });
 
+// Terminal sayfası (terminal.html) için route
+app.get('/terminal', (req, res) => {
+    res.sendFile(path.join(__dirname, 'terminal.html'));
+});
+
 // --- API Endpoint'leri Buraya Eklenecek ---
 
 // Örneğin, canvas verisini kaydetmek için bir POST endpoint'i

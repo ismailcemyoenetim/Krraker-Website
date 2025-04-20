@@ -482,41 +482,43 @@ html, body {
 /* Sun and Moon Icons */
 .sun-icon, .moon-icon {
     position: absolute;
-    transition: transform 0.5s ease, opacity 0.5s ease;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
+                opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, opacity;
 }
 
 /* Default state (light theme): Show sun icon, hide moon */
 .sun-icon {
     opacity: 1;
-    transform: rotate(0deg);
+    transform: rotate(0deg) scale(1);
 }
 
 .moon-icon {
     opacity: 0;
-    transform: rotate(-90deg);
+    transform: rotate(-90deg) scale(0.8);
 }
 
 /* Inverted state (dark theme): Show moon icon, hide sun */
 .inverted .sun-icon {
     opacity: 0;
-    transform: rotate(90deg);
+    transform: rotate(90deg) scale(0.8);
 }
 
 .inverted .moon-icon {
     opacity: 1;
-    transform: rotate(0deg);
+    transform: rotate(0deg) scale(1);
 }
 
 /* Animation for button when switching themes */
 @keyframes switchRotate {
     0% { transform: scale(1) rotate(0deg); }
-    50% { transform: scale(1.02) rotate(180deg); }
+    50% { transform: scale(1.1) rotate(180deg); }
     100% { transform: scale(1) rotate(360deg); }
 }
 
 .theme-switching .sun-icon,
 .theme-switching .moon-icon {
-    animation: switchRotate 0.5s ease-in-out;
+    animation: switchRotate 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Site inverted class */
@@ -854,6 +856,7 @@ body {
     right: 20px;
     display: flex;
     align-items: center;
+    justify-content: center; /* Center the text horizontally */
     padding: 8px 14px;
     background: rgba(0, 0, 0, 0.8);
     border: 1px solid rgba(255, 156, 0, 0.3);
@@ -867,6 +870,10 @@ body {
     z-index: 999;
     transition: all 0.3s ease;
     text-shadow: 0 0 5px rgba(255, 156, 0, 0.4);
+    width: 40px; /* Fixed width to ensure consistent sizing */
+    height: 40px; /* Fixed height to make it square */
+    text-align: center; /* Center text */
+    box-sizing: border-box; /* Include padding in width/height calculation */
 }
 
 .terminal-button:hover {

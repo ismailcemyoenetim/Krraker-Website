@@ -11,7 +11,7 @@
 </head>
 <body>
     <a href="canvas.html" class="lab-button" style="position: fixed; left: 10px; top: 50%; transform: translateY(-50%); z-index: 1000; padding: 10px; background-color: rgba(0, 0, 0, 0.2); backdrop-filter: blur(10px); border-radius: 7px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);"><img src="images/Labicon.png" alt="Lab" style="width: 22px; height: auto;"></a>
-    <a href="chat.html" class="terminal-button" id="terminal-button">&lt;/&gt;</a>
+    <a href="terminal.html" class="terminal-button" id="terminal-button">&lt;/&gt;</a>
     <div class="logo">
         <a href="index.html"><img src="assets/logo.svg" alt="Logo"></a>
     </div>
@@ -483,10 +483,22 @@
         
         // Renk tersine çevirme fonksiyonu
         document.querySelector('.invert-button').addEventListener('click', function() {
-            document.body.classList.toggle('inverted');
+            // First add the transition class
             document.body.classList.add('theme-switching');
+            
+            // Prevent multiple clicks during animation
+            if (this.getAttribute('data-animating') === 'true') return;
+            this.setAttribute('data-animating', 'true');
+            
+            // Toggle inverted class with a small delay to let animation start
+            setTimeout(() => {
+                document.body.classList.toggle('inverted');
+            }, 10);
+            
+            // Remove animation class after it completes
             setTimeout(() => {
                 document.body.classList.remove('theme-switching');
+                this.setAttribute('data-animating', 'false');
             }, 500);
         });
         
